@@ -93,6 +93,20 @@ class REST_Post_Controller {
 	}
 
 	/**
+	 * Prepares a single post output for response.
+	 *
+	 * @global WP_Post $post Global post object.
+	 *
+	 * @param WP_Post         $post    Post object.
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response Response object.
+	 */
+	public function prepare_item_for_response( $post, $request ) {
+		$additional_fields = $this->get_additional_fields_for_response( $request );
+		return rest_ensure_response( $this->get_postdata( $post, $additional_fields ) );
+	}
+
+	/**
 	 * Get post data for post object.
 	 *
 	 * @param \WP_Post|int $post              Post object.
@@ -117,6 +131,7 @@ class REST_Post_Controller {
 			'content'   => apply_filters( 'the_content', $post->post_content ),
 			'excerpt'   => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
 			'slug'      => $post->post_name,
+			'uri'       => get_permalink( $post ),
 			'status'    => $post->post_status,
 			'date'      => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			'modified'  => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
@@ -125,15 +140,15 @@ class REST_Post_Controller {
 		);
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
-			if ( isset( $additional_fields['media'] ) ) {
+			if ( in_array( 'media', $additional_fields ) ) {
 				$data['media'] = $this->get_mediadata( get_post_thumbnail_id( $post->ID ) );
 			}
 
-			if ( isset( $additional_fields['siblings'] ) ) {
+			if ( in_array( 'siblings', $additional_fields ) ) {
 				$data['siblings'] = array_map( array( $this, 'get_postdata' ), $this->get_sibling_posts( $post ) );
 			}
 
-			if ( isset( $additional_fields['children'] ) ) {
+			if ( in_array( 'children', $additional_fields ) ) {
 				$children = get_children(
 					array(
 						'post_parent' => $post->ID,
@@ -144,21 +159,21 @@ class REST_Post_Controller {
 				$data['children'] = array_map( array( $this, 'get_postdata' ), $children );
 			}
 
-			if ( isset( $additional_fields['parent'] ) ) {
+			if ( in_array( 'parent', $additional_fields ) ) {
 				$parent         = get_post_parent( $post );
 				$data['parent'] = $parent ? $this->get_postdata( $parent ) : null;
 			}
 
-			if ( isset( $additional_fields['ancestors'] ) ) {
+			if ( in_array( 'ancestors', $additional_fields ) ) {
 				$data['ancestors'] = array_map( array( $this, 'get_postdata' ), get_post_ancestors( $post ) );
 			}
 
-			if ( isset( $additional_fields['next'] ) ) {
+			if ( in_array( 'next', $additional_fields ) ) {
 				$next_post    = $this->get_next_prev_post( $post, true, true );
 				$data['next'] = $next_post ? $this->get_postdata( $next_post ) : null;
 			}
 
-			if ( isset( $additional_fields['prev'] ) ) {
+			if ( in_array( 'prev', $additional_fields ) ) {
 				$prev_post    = $this->get_next_prev_post( $post, false, true );
 				$data['prev'] = $prev_post ? $this->get_postdata( $prev_post ) : null;
 			}
@@ -260,28 +275,23 @@ class REST_Post_Controller {
 	}
 
 	/**
-	 * Prepares a single post output for response.
+	 * Gets an array of additional fields to be included on the response.
 	 *
-	 * @global WP_Post $post Global post object.
-	 *
-	 * @param WP_Post         $post    Post object.
-	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response Response object.
-	 */
-	public function prepare_item_for_response( $post, $request ) {
-		$fields = $this->get_fields_for_response( $request );
-		return rest_ensure_response( $this->get_postdata( $post, $fields ) );
-	}
-
-	/**
-	 * Gets an array of fields to be included on the response.
-	 *
-	 * Included fields are based on item schema and `_fields=` request argument.
+	 * Included fields are based on item schema and `fields=` request argument.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return string[] Fields to be included in the response.
 	 */
-	public function get_fields_for_response( $request ) {
+	public function get_additional_fields_for_response( $request ) {
+
+		if ( ! isset( $request['fields'] ) ) {
+			return array();
+		}
+
+		$requested_fields = wp_parse_list( $request['fields'] );
+		if ( 0 === count( $requested_fields ) ) {
+			return array();
+		}
 
 		$fields = array(
 			'media',
@@ -293,14 +303,6 @@ class REST_Post_Controller {
 			'prev',
 		);
 
-		if ( ! isset( $request['_fields'] ) ) {
-			return $fields;
-		}
-
-		$requested_fields = wp_parse_list( $request['_fields'] );
-		if ( 0 === count( $requested_fields ) ) {
-			return $fields;
-		}
 		// Trim off outside whitespace from the comma delimited list.
 		$requested_fields = array_map( 'trim', $requested_fields );
 
