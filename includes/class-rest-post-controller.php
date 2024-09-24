@@ -137,6 +137,7 @@ class REST_Post_Controller {
 			'modified'  => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 			'type'      => $post->post_type,
 			'author_id' => (int) $post->post_author,
+			'ACF'       => $this->get_acf_data( $post->ID ),
 		);
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
@@ -262,16 +263,64 @@ class REST_Post_Controller {
 			return null;
 		}
 
+		$src    = $image[0];
+		$width  = $image[1];
+		$height = $image[2];
+
 		$media_data = array(
 			'id'     => $media_id,
-			'src'    => $image[0],
-			'width'  => $image[1],
-			'height' => $image[2],
+			'src'    => $src,
+			'width'  => $width,
+			'height' => $height,
+			'alt'    => trim( strip_tags( get_post_meta( $media_id, '_wp_attachment_image_alt', true ) ) ),
 		);
+
+		// Add meta data.
+		$image_meta = wp_get_attachment_metadata( $media_id );
+		if ( is_array( $image_meta ) ) {
+			$media_data['meta'] = $image_meta;
+
+			$size_array = array( absint( $width ), absint( $height ) );
+			$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $media_id );
+			$sizes      = wp_calculate_image_sizes( $size_array, $src, $image_meta, $media_id );
+
+			if ( $srcset && $sizes ) {
+				$media_data['srcset'] = $srcset;
+				$media_data['sizes']  = $sizes;
+			}
+		}
+
+		// Add acf meta data.
+		if ( function_exists( 'get_fields' ) ) {
+			$media_data['ACF'] = $this->get_acf_data( $media_id );
+		}
 
 		// We can add more media meta fields here.
 
 		return $media_data;
+	}
+
+	/**
+	 * Get acf data.
+	 *
+	 * @param int    $object_id Object ID.
+	 *
+	 * @return array|false
+	 */
+	private function get_acf_data( $object_id ) {
+
+		if ( function_exists( 'get_field_objects' ) ) {
+			$fields = \get_field_objects( $object_id );
+		}
+
+		$data = array();
+		if ( ! empty( $fields ) ) {
+			foreach ( $fields as $key => $field ) {
+				$data[ $key ] = $field['value'];
+			}
+		}
+
+		return $data;
 	}
 
 	/**
