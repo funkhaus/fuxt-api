@@ -20,7 +20,7 @@ class REST_Post_Controller {
 	 * Init function.
 	 */
 	public function init() {
-		//
+		add_action( 'rest_api_init', array( $this, 'register_page_endpoint' ) );
 	}
 
 	public function register_page_endpoint() {
@@ -95,52 +95,73 @@ class REST_Post_Controller {
 	/**
 	 * Get post data for post object.
 	 *
-	 * @param \WP_Post $post
+	 * @param \WP_Post|int $post              Post object.
+	 * @param array        $additional_fields Additional post fields to return.
 	 *
-	 * @return array
+	 * @return array|null
 	 */
-	private function get_postdata( $post, $additional_fields ) {
+	private function get_postdata( $post, $additional_fields = array() ) {
+		// In case int value is provided.
+		if ( ! $post instanceof \WP_Post ) {
+			$post = get_post( $post );
+
+			if ( ! $post instanceof \WP_Post ) {
+				return null;
+			}
+		}
+
 		$data = array(
-			'id'             => $post->ID,
-			'guid'           => $post->guid,
-			'title'          => get_the_title( $post ),
-			'content'        => apply_filters( 'the_content', $post->post_content ),
-			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
-			'slug'           => $post->post_name,
-			'status'         => $post->post_status,
-			'date'           => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'modified'       => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
-			'type'           => $post->post_type,
-			'author_id'      => (int) $post->post_author,
-			'featured_media' => (int) get_post_thumbnail_id( $post->ID ),
+			'id'        => $post->ID,
+			'guid'      => $post->guid,
+			'title'     => get_the_title( $post ),
+			'content'   => apply_filters( 'the_content', $post->post_content ),
+			'excerpt'   => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
+			'slug'      => $post->post_name,
+			'status'    => $post->post_status,
+			'date'      => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
+			'modified'  => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			'type'      => $post->post_type,
+			'author_id' => (int) $post->post_author,
 		);
 
-		if ( isset( $additional_fields['media'] ) ) {
-			$data['media'] = $this->get_mediadata( get_post_thumbnail_id( $post->ID ) );
-		}
+		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
+			if ( isset( $additional_fields['media'] ) ) {
+				$data['media'] = $this->get_mediadata( get_post_thumbnail_id( $post->ID ) );
+			}
 
-		if ( isset( $additional_fields['siblings'] ) ) {
-			$data['siblings'] = array();
-		}
+			if ( isset( $additional_fields['siblings'] ) ) {
+				$data['siblings'] = array_map( array( $this, 'get_postdata' ), $this->get_sibling_posts( $post ) );
+			}
 
-		if ( isset( $additional_fields['children'] ) ) {
-			$data['children'] = array();
-		}
+			if ( isset( $additional_fields['children'] ) ) {
+				$children = get_children(
+					array(
+						'post_parent' => $post->ID,
+						'post_type'   => $post->post_type,
+					)
+				);
 
-		if ( isset( $additional_fields['parent'] ) ) {
-			$data['parent'] = array();
-		}
+				$data['children'] = array_map( array( $this, 'get_postdata' ), $children );
+			}
 
-		if ( isset( $additional_fields['ancestors'] ) ) {
-			$data['ancestors'] = array();
-		}
+			if ( isset( $additional_fields['parent'] ) ) {
+				$parent         = get_post_parent( $post );
+				$data['parent'] = $parent ? $this->get_postdata( $parent ) : null;
+			}
 
-		if ( isset( $additional_fields['next'] ) ) {
-			$data['next'] = array();
-		}
+			if ( isset( $additional_fields['ancestors'] ) ) {
+				$data['ancestors'] = array_map( array( $this, 'get_postdata' ), get_post_ancestors( $post ) );
+			}
 
-		if ( isset( $additional_fields['prev'] ) ) {
-			$data['prev'] = array();
+			if ( isset( $additional_fields['next'] ) ) {
+				$next_post    = $this->get_next_prev_post( $post, true, true );
+				$data['next'] = $next_post ? $this->get_postdata( $next_post ) : null;
+			}
+
+			if ( isset( $additional_fields['prev'] ) ) {
+				$prev_post    = $this->get_next_prev_post( $post, false, true );
+				$data['prev'] = $prev_post ? $this->get_postdata( $prev_post ) : null;
+			}
 		}
 
 		return $data;
@@ -153,48 +174,59 @@ class REST_Post_Controller {
 	 * @param bool     $is_next Next or Prev.
 	 * @param bool     $loop    Allow loop or not. In loop, the next item for last post will be the first one.
 	 *                          The prev item for first post will be the last one.
+	 *
+	 * @return \WP_Post|null
 	 */
 	private function get_next_prev_post( $post, $is_next = true, $loop = true ) {
-		// Get all siblings pages
-		// Yes this is isn't effienct to query all pages,
-		// but actually it works well for thousands of pages in practice.
-		$args = array(
-			'post_type'      => get_post_type( $post ),
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-			'orderby'        => 'menu_order',
-			'order'          => 'ASC',
-			'post_parent'    => $post->post_parent,
+		// Get all siblings
+		$siblings = $this->get_sibling_posts( $post );
+
+		$sibling_ids = array_map(
+			function( $sibling ) {
+				return $sibling->ID;
+			},
+			$siblings
 		);
 
-		// Get all siblings
-		$siblings = get_posts( $args );
-
 		// Find where current posts exists in Siblings
-		$index = array_search( $post->ID, $siblings );
+		$index = array_search( $post->ID, $sibling_ids );
 
 		if ( $is_next ) {
 			if ( $index == count( $siblings ) - 1 ) {
 				return $loop ? $siblings[0] : null;
 			}
 
-			// Get next
 			return $siblings[ $index + 1 ];
-
 		} else {
-			$on_first = $index == 0;
-
-			// If on first, then return last, or null if not looping
-			if ( $loop && $on_first ) {
-				return end( $siblings );
-			} elseif ( ! $loop && $on_first ) {
-				return null;
+			if ( $index == 0 ) {
+				return $loop ? end( $siblings ) : null;
 			}
 
-			// Get previous
 			return $siblings[ $index - 1 ];
 		}
+	}
 
+	/**
+	 * Get sibling posts.
+	 *
+	 * @param \WP_Post $post
+	 *
+	 * @return \WP_Post[]
+	 */
+	private function get_sibling_posts( $post ) {
+		// Get all siblings pages
+		// Yes this is isn't effienct to query all pages,
+		// but actually it works well for thousands of pages in practice.
+		$args = array(
+			'post_type'      => get_post_type( $post ),
+			'posts_per_page' => -1,
+			'orderby'        => 'menu_order',
+			'order'          => 'ASC',
+			'post_parent'    => $post->post_parent,
+		);
+
+		// Get all siblings
+		return get_posts( $args );
 	}
 
 	/**
@@ -202,17 +234,17 @@ class REST_Post_Controller {
 	 *
 	 * @param int $media_id
 	 *
-	 * @return array|false
+	 * @return array|null
 	 */
 	private function get_mediadata( $media_id ) {
 		if ( empty( $media_id ) ) {
-			return false;
+			return null;
 		}
 
 		$size  = 'full'; // can be thumbnail|medium|full|array(w,h)
 		$image = wp_get_attachment_image_src( $media_id, $size );
 		if ( ! $image ) {
-			return false;
+			return null;
 		}
 
 		$media_data = array(
@@ -232,44 +264,13 @@ class REST_Post_Controller {
 	 *
 	 * @global WP_Post $post Global post object.
 	 *
-	 * @param WP_Post         $item    Post object.
+	 * @param WP_Post         $post    Post object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $item, $request ) {
-		// Restores the more descriptive, specific name for use within this method.
-		$post = $item;
-
-		$GLOBALS['post'] = $post;
-
-		setup_postdata( $post );
-
-		// Base data for every post.
-		$data = array(
-			'id'             => $post->ID,
-			'guid'           => $post->guid,
-			'title'          => get_the_title( $post ),
-			'content'        => apply_filters( 'the_content', $post->post_content ),
-			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
-			'slug'           => $post->post_name,
-			'status'         => $post->post_status,
-			'date'           => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'modified'       => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
-			'type'           => $post->post_type,
-			'author_id'      => (int) $post->post_author,
-			'featured_media' => (int) get_post_thumbnail_id( $post->ID ),
-			'parent'         => $post->post_parent,
-		);
-
+	public function prepare_item_for_response( $post, $request ) {
 		$fields = $this->get_fields_for_response( $request );
-
-		if ( rest_is_field_included( 'media', $fields ) ) {
-
-		}
-
-		$response = rest_ensure_response( $data );
-
-		return $response;
+		return rest_ensure_response( $this->get_postdata( $post, $fields ) );
 	}
 
 	/**

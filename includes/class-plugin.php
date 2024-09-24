@@ -18,6 +18,6 @@ class Plugin extends Plugin_Base {
 
 	public function init() {
 		// Load modules.
-		( new RestApi() )->init();
+		( new REST_Post_Controller() )->init();
 	}
 }
