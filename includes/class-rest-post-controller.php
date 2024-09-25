@@ -131,13 +131,13 @@ class REST_Post_Controller {
 			'content'   => apply_filters( 'the_content', $post->post_content ),
 			'excerpt'   => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
 			'slug'      => $post->post_name,
-			'uri'       => get_permalink( $post ),
+			'uri'       => Utils::get_relative_url( get_permalink( $post ) ),
 			'status'    => $post->post_status,
 			'date'      => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			'modified'  => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 			'type'      => $post->post_type,
 			'author_id' => (int) $post->post_author,
-			'ACF'       => $this->get_acf_data( $post->ID ),
+			'acf'       => $this->get_acf_data( $post->ID ),
 		);
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
@@ -242,7 +242,16 @@ class REST_Post_Controller {
 		);
 
 		// Get all siblings
-		return get_posts( $args );
+		$siblings = get_posts( $args );
+
+		return array_values(
+			array_filter(
+				$siblings,
+				function( $sibling ) use ( $post ) {
+					return $sibling->ID !== $post->ID;
+				}
+			)
+		);
 	}
 
 	/**
@@ -278,8 +287,6 @@ class REST_Post_Controller {
 		// Add meta data.
 		$image_meta = wp_get_attachment_metadata( $media_id );
 		if ( is_array( $image_meta ) ) {
-			$media_data['meta'] = $image_meta;
-
 			$size_array = array( absint( $width ), absint( $height ) );
 			$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $media_id );
 			$sizes      = wp_calculate_image_sizes( $size_array, $src, $image_meta, $media_id );
@@ -287,12 +294,17 @@ class REST_Post_Controller {
 			if ( $srcset && $sizes ) {
 				$media_data['srcset'] = $srcset;
 				$media_data['sizes']  = $sizes;
+			} else {
+				$media_data['srcset'] = $src . ' ' . $width . 'w';
+				$media_data['sizes']  = $width . 'px';
 			}
+
+			$media_data['meta'] = $image_meta;
 		}
 
 		// Add acf meta data.
 		if ( function_exists( 'get_fields' ) ) {
-			$media_data['ACF'] = $this->get_acf_data( $media_id );
+			$media_data['acf'] = $this->get_acf_data( $media_id );
 		}
 
 		// We can add more media meta fields here.
