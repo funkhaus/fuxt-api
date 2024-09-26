@@ -50,7 +50,7 @@ class Post {
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
 			if ( in_array( 'media', $additional_fields ) ) {
-				$data['featured_image'] = Utils::get_mediadata( get_post_thumbnail_id( $post->ID ) );
+				$data['featured_media'] = Utils::get_mediadata( get_post_thumbnail_id( $post->ID ) );
 			}
 
 			if ( in_array( 'acf', $additional_fields ) ) {
