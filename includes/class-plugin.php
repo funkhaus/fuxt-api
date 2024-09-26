@@ -19,5 +19,6 @@ class Plugin extends Plugin_Base {
 	public function init() {
 		// Load modules.
 		( new REST_Post_Controller() )->init();
+		( new REST_Menu_Controller() )->init();
 	}
 }

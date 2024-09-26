@@ -35,27 +35,24 @@ class Post {
 		$url = get_permalink( $post );
 
 		$data = array(
-			'id'        => $post->ID,
-			'guid'      => $post->guid,
-			'title'     => get_the_title( $post ),
-			'post_type' => $post->post_type,
-			'content'   => apply_filters( 'the_content', $post->post_content ),
-			'excerpt'   => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
-			'slug'      => $post->post_name,
-			'url'       => $url,
-			'uri'       => Utils::get_relative_url( $url ),
-			'status'    => $post->post_status,
-			'date'      => Utils::prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'modified'  => Utils::prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
-			'type'      => $post->post_type,
-			'author_id' => (int) $post->post_author,
+			'id'             => $post->ID,
+			'guid'           => $post->guid,
+			'title'          => get_the_title( $post ),
+			'post_type'      => $post->post_type,
+			'content'        => apply_filters( 'the_content', $post->post_content ),
+			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
+			'slug'           => $post->post_name,
+			'url'            => $url,
+			'uri'            => Utils::get_relative_url( $url ),
+			'status'         => $post->post_status,
+			'date'           => Utils::prepare_date_response( $post->post_date_gmt, $post->post_date ),
+			'modified'       => Utils::prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			'type'           => $post->post_type,
+			'author_id'      => (int) $post->post_author,
+			'featured_image' => Utils::get_mediadata( get_post_thumbnail_id( $post->ID ) ) ?? array(),
 		);
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
-			if ( in_array( 'media', $additional_fields ) ) {
-				$data['featured_media'] = Utils::get_mediadata( get_post_thumbnail_id( $post->ID ) );
-			}
-
 			if ( in_array( 'acf', $additional_fields ) ) {
 				$data['acf'] = Utils::get_acf_data( $post->ID );
 			}
