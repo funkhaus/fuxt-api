@@ -16,20 +16,22 @@ class REST_Post_Controller {
 
 	const REST_NAMESPACE = 'fuxt/v1';
 
+	const ROUTE = '/post';
+
 	/**
 	 * Init function.
 	 */
 	public function init() {
-		add_action( 'rest_api_init', array( $this, 'register_post_endpoint' ) );
+		add_action( 'rest_api_init', array( $this, 'register_endpoint' ) );
 	}
 
 	/**
 	 * Register post endpoint.
 	 */
-	public function register_post_endpoint() {
+	public function register_endpoint() {
 		register_rest_route(
 			self::REST_NAMESPACE,
-			'/post',
+			self::ROUTE,
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -100,19 +102,6 @@ class REST_Post_Controller {
 			);
 		}
 
-		return $this->prepare_item_for_response( $post, $request );
-	}
-
-	/**
-	 * Prepares a single post output for response.
-	 *
-	 * @global WP_Post $post Global post object.
-	 *
-	 * @param WP_Post         $post    Post object.
-	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response Response object.
-	 */
-	public function prepare_item_for_response( $post, $request ) {
 		$additional_fields = $this->get_additional_fields_for_response( $request );
 		return rest_ensure_response( Utils\Post::get_postdata( $post, $additional_fields ) );
 	}
