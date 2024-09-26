@@ -3,10 +3,10 @@
  * Plugin Name: fuxt-api
  * Plugin URI: https://github.com/funkhaus/fuxt-api
  * Description: An opinionated extension of the WP-JSON API geared towards the fuxt framework.
- * Author: funkhaus
+ * Author: funkhaus, drewbaker, rsm0128
  * Author URI: https://github.com/funkhaus
  * Text Domain: fuxt-api
- * Version: 1.0.0
+ * Version: 0.1.0
  * Year: 2024
  */
 
