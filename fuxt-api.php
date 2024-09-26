@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Fuxt API Plugin
  * Plugin URI: https://github.com/funkhaus/fuxt-api
- * Description: A JSON api framework for funkhaus headless implementation.
- * Author: Drew Baker, Funkhaus, rsm0128
+ * Description: An opinionated extension of the WP-JSON API geared towards the fuxt framework.
+ * Author: funkhaus
  * Author URI: https://github.com/funkhaus
  * Text Domain: fuxt-api
  * Version: 1.0.0
