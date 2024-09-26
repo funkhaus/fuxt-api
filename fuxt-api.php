@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Fuxt API Plugin
+ * Plugin Name: fuxt-api
  * Plugin URI: https://github.com/funkhaus/fuxt-api
  * Description: An opinionated extension of the WP-JSON API geared towards the fuxt framework.
  * Author: funkhaus
