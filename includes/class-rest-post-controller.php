@@ -137,7 +137,6 @@ class REST_Post_Controller {
 		}
 
 		$fields = array(
-			'media',
 			'acf',
 			'siblings',
 			'children',
