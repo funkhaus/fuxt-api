@@ -129,20 +129,27 @@ class REST_Menu_Controller {
 			$menu_item->menu_item_parent = 0;
 		}
 
+		print_r( $menu_item );
+
 		$menu_data = array(
 			'id'          => $menu_item->ID,
 			'title'       => $menu_item->title,
 			'slug'        => $menu_item->post_name,
 			'menu_order'  => $menu_item->menu_order,
-			'uri'         => Utils\Utils::get_relative_url( $menu_item->url ),
+			'url'         => $menu_item->url,
 			'target'      => $menu_item->target,
 			'attr_title'  => $menu_item->attr_title,
 			'description' => $menu_item->description,
 			'classes'     => $menu_item->classes,
 			'xfn'         => $menu_item->xfn,
 			'parent_id'   => $menu_item->menu_item_parent,
+			'type'        => $menu_item->type,
 			'children'    => array(),
 		);
+
+		if ( 'custom' !== $menu_item->type ) {
+			$menu_data['uri'] = Utils\Utils::get_relative_url( $menu_item->url );
+		}
 
 		return $menu_data;
 	}
