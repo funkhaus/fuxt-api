@@ -129,8 +129,6 @@ class REST_Menu_Controller {
 			$menu_item->menu_item_parent = 0;
 		}
 
-		print_r( $menu_item );
-
 		$menu_data = array(
 			'id'          => $menu_item->ID,
 			'title'       => $menu_item->title,
