@@ -1,16 +1,16 @@
 <?php
 /**
- * Class Plugin
+ * Class REST_Post_Controller
  *
  * @package FuxtApi
  */
 
 namespace FuxtApi;
 
-use FuxtApi\Utils\Post;
+use FuxtApi\Utils\Post as PostUtils;
 
 /**
- * Class Plugin
+ * Class REST_Post_Controller
  *
  * @package FuxtApi
  */
@@ -76,7 +76,7 @@ class REST_Post_Controller {
 	 * @return \WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$post = Post::get_post_by_uri( $request['uri'] ?? '' );
+		$post = PostUtils::get_post_by_uri( $request['uri'] ?? '' );
 
 		if ( empty( $post ) ) {
 			return new \WP_Error(
@@ -95,7 +95,7 @@ class REST_Post_Controller {
 		}
 
 		$additional_fields = $this->get_additional_fields_for_response( $request );
-		return rest_ensure_response( Post::get_postdata( $post, $additional_fields ) );
+		return rest_ensure_response( PostUtils::get_postdata( $post, $additional_fields ) );
 	}
 
 	/**

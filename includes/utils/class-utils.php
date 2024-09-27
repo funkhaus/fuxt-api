@@ -7,6 +7,7 @@
 
 namespace FuxtApi\Utils;
 
+use \FuxtApi\Utils\Acf as AcfUtils;
 /**
  * Class Utils
  *
@@ -25,13 +26,13 @@ class Utils {
 	}
 
 	/**
-	* Checks the post_date_gmt or modified_gmt and prepare any post or
-	* modified date for single post output.
-	*
-	* @param string      $date_gmt GMT publication time.
-	* @param string|null $date     Optional. Local publication time. Default null.
-	* @return string|null ISO8601/RFC3339 formatted datetime.
-	*/
+	 * Checks the post_date_gmt or modified_gmt and prepare any post or
+	 * modified date for single post output.
+	 *
+	 * @param string      $date_gmt GMT publication time.
+	 * @param string|null $date     Optional. Local publication time. Default null.
+	 * @return string|null ISO8601/RFC3339 formatted datetime.
+	 */
 	public static function prepare_date_response( $date_gmt, $date = null ) {
 		// Use the date if passed.
 		if ( isset( $date ) ) {
@@ -45,113 +46,6 @@ class Utils {
 
 		// Return the formatted datetime.
 		return mysql_to_rfc3339( $date_gmt );
-	}
-
-	/**
-	 * Get acf data.
-	 *
-	 * @param int $object_id Object ID.
-	 *
-	 * @return array|null
-	 */
-	public static function get_acf_data( $object_id ) {
-
-		if ( function_exists( 'get_field_objects' ) ) {
-			$fields = \get_field_objects( $object_id );
-
-			return self::sanitize_acf_data( $fields );
-		}
-
-		return null;
-	}
-
-	/**
-	 * Convert acf data to response array.
-	 *
-	 * @param array $fields Fields array.
-	 *
-	 * @return array|null
-	 */
-	public static function sanitize_acf_data( $fields ) {
-		$data = array();
-		if ( ! empty( $fields ) ) {
-			foreach ( $fields as $key => $field ) {
-				$value = null;
-				switch ( $field['type'] ) {
-					case 'image':
-						if ( 'array' === $field['return_format'] ) {
-							$id = $field['value']['id'];
-						} elseif ( 'id' === $field['return_format'] ) {
-							$id = $field['value'];
-						} elseif ( 'url' === $field['return_format'] ) {
-							$id = attachment_url_to_postid( $field['value'] );
-						}
-
-						if ( $id ) {
-							$value = self::get_mediadata( $id );
-						}
-
-						break;
-
-					case 'post_object':
-						$value = Post::get_postdata( $field['value'] );
-
-						break;
-
-					case 'relationship':
-						$value = array_map( array( Post::class, 'get_postdata' ), $field['value'] );
-
-						break;
-
-					case 'taxonomy':
-						$value = array_map( array( Post::class, 'get_postdata' ), $field['value'] );
-
-						break;
-
-					case 'page_link':
-						if ( $field['multiple'] ) {
-							$ids   = array_map( array( Post::class, 'get_post_by_uri' ), $field['value'] );
-							$value = array_map( array( Post::class, 'get_postdata' ), $ids );
-						} else {
-							$value = Post::get_postdata( Post::get_post_by_uri( $field['value'] ) );
-						}
-
-						break;
-
-					case 'group':
-						$sub_fields = $field['sub_fields'];
-						$sub_fields = array_combine( array_column( $sub_fields, 'name' ), array_values( $sub_fields ) );
-						foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
-							$sub_field['value'] = $field['value'][ $sub_field_name ] ?? null;
-						}
-
-						$value = self::sanitize_acf_data( $sub_fields );
-
-						break;
-
-					case 'repeater':
-						$sub_fields = $field['sub_fields'];
-						$sub_fields = array_combine( array_column( $sub_fields, 'name' ), array_values( $sub_fields ) );
-
-						$value = array();
-						foreach ( $field['value'] as $row ) {
-							foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
-								$sub_field['value'] = $row[ $sub_field_name ] ?? null;
-							}
-							$value[] = self::sanitize_acf_data( $sub_fields );
-						}
-
-						break;
-					default:
-						$value = $field['value'];
-						break;
-				}
-
-				$data[ $key ] = $value;
-			}
-		}
-
-		return $data;
 	}
 
 	/**
@@ -204,7 +98,7 @@ class Utils {
 
 		// Add acf meta data.
 		if ( function_exists( 'get_fields' ) ) {
-			$media_data['acf'] = Utils::get_acf_data( $media_id );
+			$media_data['acf'] = AcfUtils::get_data_by_id( $media_id );
 		}
 
 		// We can add more media meta fields here.

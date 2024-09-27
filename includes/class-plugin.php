@@ -20,5 +20,6 @@ class Plugin extends Plugin_Base {
 		// Load modules.
 		( new REST_Post_Controller() )->init();
 		( new REST_Menu_Controller() )->init();
+		( new REST_Acf_Controller() )->init();
 	}
 }

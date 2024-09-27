@@ -7,6 +7,9 @@
 
 namespace FuxtApi\Utils;
 
+use FuxtApi\Utils\Utils as Utils;
+use FuxtApi\Utils\Acf as AcfUtils;
+
 /**
  * Class Post
  *
@@ -54,7 +57,7 @@ class Post {
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
 			if ( in_array( 'acf', $additional_fields ) ) {
-				$data['acf'] = Utils::get_acf_data( $post->ID );
+				$data['acf'] = AcfUtils::get_data_by_id( $post->ID );
 			}
 
 			if ( in_array( 'siblings', $additional_fields ) ) {

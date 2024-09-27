@@ -1,14 +1,16 @@
 <?php
 /**
- * Class Plugin
+ * Class REST_Menu_Controller
  *
  * @package FuxtApi
  */
 
 namespace FuxtApi;
 
+use \FuxtApi\Utils\Utils;
+
 /**
- * Class Plugin
+ * Class REST_Menu_Controller
  *
  * @package FuxtApi
  */
@@ -134,7 +136,7 @@ class REST_Menu_Controller {
 			'title'       => $menu_item->title,
 			'slug'        => $menu_item->post_name,
 			'menu_order'  => $menu_item->menu_order,
-			'uri'         => Utils\Utils::get_relative_url( $menu_item->url ),
+			'uri'         => Utils::get_relative_url( $menu_item->url ),
 			'target'      => $menu_item->target,
 			'attr_title'  => $menu_item->attr_title,
 			'description' => $menu_item->description,
