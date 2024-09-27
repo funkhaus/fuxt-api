@@ -50,20 +50,104 @@ class Utils {
 	/**
 	 * Get acf data.
 	 *
-	 * @param int    $object_id Object ID.
+	 * @param int $object_id Object ID.
 	 *
-	 * @return array|false
+	 * @return array|null
 	 */
 	public static function get_acf_data( $object_id ) {
 
 		if ( function_exists( 'get_field_objects' ) ) {
 			$fields = \get_field_objects( $object_id );
+
+			return self::sanitize_acf_data( $fields );
 		}
 
+		return null;
+	}
+
+	/**
+	 * Convert acf data to response array.
+	 *
+	 * @param array $fields Fields array.
+	 *
+	 * @return array|null
+	 */
+	public static function sanitize_acf_data( $fields ) {
 		$data = array();
 		if ( ! empty( $fields ) ) {
 			foreach ( $fields as $key => $field ) {
-				$data[ $key ] = $field['value'];
+				$value = null;
+				switch ( $field['type'] ) {
+					case 'image':
+						if ( 'array' === $field['return_format'] ) {
+							$id = $field['value']['id'];
+						} elseif ( 'id' === $field['return_format'] ) {
+							$id = $field['value'];
+						} elseif ( 'url' === $field['return_format'] ) {
+							$id = attachment_url_to_postid( $field['value'] );
+						}
+
+						if ( $id ) {
+							$value = self::get_mediadata( $id );
+						}
+
+						break;
+
+					case 'post_object':
+						$value = Post::get_postdata( $field['value'] );
+
+						break;
+
+					case 'relationship':
+						$value = array_map( array( Post::class, 'get_postdata' ), $field['value'] );
+
+						break;
+
+					case 'taxonomy':
+						$value = array_map( array( Post::class, 'get_postdata' ), $field['value'] );
+
+						break;
+
+					case 'page_link':
+						if ( $field['multiple'] ) {
+							$ids   = array_map( array( Post::class, 'get_post_by_uri' ), $field['value'] );
+							$value = array_map( array( Post::class, 'get_postdata' ), $ids );
+						} else {
+							$value = Post::get_postdata( Post::get_post_by_uri( $field['value'] ) );
+						}
+
+						break;
+
+					case 'group':
+						$sub_fields = $field['sub_fields'];
+						$sub_fields = array_combine( array_column( $sub_fields, 'name' ), array_values( $sub_fields ) );
+						foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
+							$sub_field['value'] = $field['value'][ $sub_field_name ] ?? null;
+						}
+
+						$value = self::sanitize_acf_data( $sub_fields );
+
+						break;
+
+					case 'repeater':
+						$sub_fields = $field['sub_fields'];
+						$sub_fields = array_combine( array_column( $sub_fields, 'name' ), array_values( $sub_fields ) );
+
+						$value = array();
+						foreach ( $field['value'] as $row ) {
+							foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
+								$sub_field['value'] = $row[ $sub_field_name ] ?? null;
+							}
+							$value[] = self::sanitize_acf_data( $sub_fields );
+						}
+
+						break;
+					default:
+						$value = $field['value'];
+						break;
+				}
+
+				$data[ $key ] = $value;
 			}
 		}
 
