@@ -166,4 +166,27 @@ class Post {
 		);
 	}
 
+	/**
+	 * Get post object by uri.
+	 *
+	 * @param string $uri Post URL.
+	 *
+	 * @return \WP_Post|null
+	 */
+	public static function get_post_by_uri( $uri ) {
+		$post_types = get_post_types(
+			array(
+				'public'       => true,
+				'show_in_rest' => true,
+				'_builtin'     => false,
+			)
+		);
+
+		$uri = Utils::get_relative_url( $uri );
+
+		$post_types = array_merge( array( 'post', 'page' ), $post_types );
+		$post       = get_page_by_path( $uri, OBJECT, $post_types );
+
+		return $post;
+	}
 }
