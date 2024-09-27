@@ -8,6 +8,7 @@
 namespace FuxtApi\Utils;
 
 use \FuxtApi\Utils\Acf as AcfUtils;
+
 /**
  * Class Utils
  *
@@ -104,5 +105,27 @@ class Utils {
 		// We can add more media meta fields here.
 
 		return $media_data;
+	}
+
+	public static function get_termdata( $term_taxonomy ) {
+		if ( empty( $term_taxonomy ) ) {
+			return null;
+		}
+
+		if ( ! $term_taxonomy instanceof \WP_Term ) {
+			$term_taxonomy = get_term_by( 'term_taxonomy_id', $term_taxonomy );
+
+			if ( empty( $term_taxonomy ) ) {
+				return null;
+			}
+		}
+
+		return array(
+			'id'     => $term_taxonomy->term_id,
+			'name'   => $term_taxonomy->name,
+			'slug'   => $term_taxonomy->slug,
+			'parent' => self::get_termdata( $term_taxonomy->parent ),
+			'uri'    => self::get_relative_url( get_term_link( $term_taxonomy ) ),
+		);
 	}
 }

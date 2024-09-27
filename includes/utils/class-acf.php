@@ -74,7 +74,7 @@ class Acf {
 						break;
 
 					case 'taxonomy':
-						$value = array_map( array( PostUtils::class, 'get_postdata' ), $field['value'] );
+						$value = array_map( array( Utils::class, 'get_termdata' ), $field['value'] );
 
 						break;
 

@@ -60,6 +60,14 @@ class Post {
 				$data['acf'] = AcfUtils::get_data_by_id( $post->ID );
 			}
 
+			if ( in_array( 'terms', $additional_fields ) ) {
+				$taxonomies = get_object_taxonomies( $post->post_type, 'names' );
+				foreach ( $taxonomies as $taxonomy ) {
+					$terms                      = get_the_terms( $post->ID, $taxonomy );
+					$data['terms'][ $taxonomy ] = $terms ? array_map( array( Utils::class, 'get_termdata' ), $terms ) : null;
+				}
+			}
+
 			if ( in_array( 'siblings', $additional_fields ) ) {
 				$data['siblings'] = array_map( array( self::class, 'get_postdata' ), self::get_sibling_posts( $post ) );
 			}

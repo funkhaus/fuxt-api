@@ -119,6 +119,7 @@ class REST_Post_Controller {
 
 		$fields = array(
 			'acf',
+			'terms',
 			'siblings',
 			'children',
 			'parent',
