@@ -1,14 +1,16 @@
 <?php
 /**
- * Class Plugin
+ * Class REST_Menu_Controller
  *
  * @package FuxtApi
  */
 
 namespace FuxtApi;
 
+use \FuxtApi\Utils\Utils;
+
 /**
- * Class Plugin
+ * Class REST_Menu_Controller
  *
  * @package FuxtApi
  */
@@ -142,12 +144,13 @@ class REST_Menu_Controller {
 			'xfn'         => $menu_item->xfn,
 			'parent_id'   => $menu_item->menu_item_parent,
 			'type'        => $menu_item->type,
-			'children'    => array(),
 		);
 
 		if ( 'custom' !== $menu_item->type ) {
-			$menu_data['uri'] = Utils\Utils::get_relative_url( $menu_item->url );
+			$menu_data['uri'] = Utils::get_relative_url( $menu_item->url );
 		}
+
+		$menu_data['children'] = array();
 
 		return $menu_data;
 	}

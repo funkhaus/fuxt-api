@@ -1,14 +1,16 @@
 <?php
 /**
- * Class Plugin
+ * Class REST_Post_Controller
  *
  * @package FuxtApi
  */
 
 namespace FuxtApi;
 
+use FuxtApi\Utils\Post as PostUtils;
+
 /**
- * Class Plugin
+ * Class REST_Post_Controller
  *
  * @package FuxtApi
  */
@@ -74,18 +76,8 @@ class REST_Post_Controller {
 	 * @return \WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$uri        = $request['uri'] ?? '';
-		$post_types = get_post_types(
-			array(
-				'public'       => true,
-				'show_in_rest' => true,
-				'_builtin'     => false,
-			)
-		);
+		$post = PostUtils::get_post_by_uri( $request['uri'] ?? '' );
 
-		$post_types = array_merge( array( 'post', 'page' ), $post_types );
-
-		$post = get_page_by_path( $uri, OBJECT, $post_types );
 		if ( empty( $post ) ) {
 			return new \WP_Error(
 				'rest_post_invalid_uri',
@@ -103,7 +95,7 @@ class REST_Post_Controller {
 		}
 
 		$additional_fields = $this->get_additional_fields_for_response( $request );
-		return rest_ensure_response( Utils\Post::get_postdata( $post, $additional_fields ) );
+		return rest_ensure_response( PostUtils::get_postdata( $post, $additional_fields ) );
 	}
 
 	/**
@@ -127,6 +119,7 @@ class REST_Post_Controller {
 
 		$fields = array(
 			'acf',
+			'terms',
 			'siblings',
 			'children',
 			'parent',

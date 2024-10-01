@@ -7,6 +7,8 @@
 
 namespace FuxtApi\Utils;
 
+use \FuxtApi\Utils\Acf as AcfUtils;
+
 /**
  * Class Utils
  *
@@ -25,13 +27,13 @@ class Utils {
 	}
 
 	/**
-	* Checks the post_date_gmt or modified_gmt and prepare any post or
-	* modified date for single post output.
-	*
-	* @param string      $date_gmt GMT publication time.
-	* @param string|null $date     Optional. Local publication time. Default null.
-	* @return string|null ISO8601/RFC3339 formatted datetime.
-	*/
+	 * Checks the post_date_gmt or modified_gmt and prepare any post or
+	 * modified date for single post output.
+	 *
+	 * @param string      $date_gmt GMT publication time.
+	 * @param string|null $date     Optional. Local publication time. Default null.
+	 * @return string|null ISO8601/RFC3339 formatted datetime.
+	 */
 	public static function prepare_date_response( $date_gmt, $date = null ) {
 		// Use the date if passed.
 		if ( isset( $date ) ) {
@@ -45,29 +47,6 @@ class Utils {
 
 		// Return the formatted datetime.
 		return mysql_to_rfc3339( $date_gmt );
-	}
-
-	/**
-	 * Get acf data.
-	 *
-	 * @param int    $object_id Object ID.
-	 *
-	 * @return array|false
-	 */
-	public static function get_acf_data( $object_id ) {
-
-		if ( function_exists( 'get_field_objects' ) ) {
-			$fields = \get_field_objects( $object_id );
-		}
-
-		$data = array();
-		if ( ! empty( $fields ) ) {
-			foreach ( $fields as $key => $field ) {
-				$data[ $key ] = $field['value'];
-			}
-		}
-
-		return $data;
 	}
 
 	/**
@@ -120,11 +99,33 @@ class Utils {
 
 		// Add acf meta data.
 		if ( function_exists( 'get_fields' ) ) {
-			$media_data['acf'] = Utils::get_acf_data( $media_id );
+			$media_data['acf'] = AcfUtils::get_data_by_id( $media_id );
 		}
 
 		// We can add more media meta fields here.
 
 		return $media_data;
+	}
+
+	public static function get_termdata( $term_taxonomy ) {
+		if ( empty( $term_taxonomy ) ) {
+			return null;
+		}
+
+		if ( ! $term_taxonomy instanceof \WP_Term ) {
+			$term_taxonomy = get_term_by( 'term_taxonomy_id', $term_taxonomy );
+
+			if ( empty( $term_taxonomy ) ) {
+				return null;
+			}
+		}
+
+		return array(
+			'id'     => $term_taxonomy->term_id,
+			'name'   => $term_taxonomy->name,
+			'slug'   => $term_taxonomy->slug,
+			'parent' => self::get_termdata( $term_taxonomy->parent ),
+			'uri'    => self::get_relative_url( get_term_link( $term_taxonomy ) ),
+		);
 	}
 }
