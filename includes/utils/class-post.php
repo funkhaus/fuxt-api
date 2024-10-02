@@ -22,10 +22,11 @@ class Post {
 	 *
 	 * @param \WP_Post|int $post              Post object.
 	 * @param array        $additional_fields Additional post fields to return.
+	 * @param array        $params            Additional parameters.
 	 *
 	 * @return array|null
 	 */
-	public static function get_postdata( $post, $additional_fields = array() ) {
+	public static function get_postdata( $post, $additional_fields = array(), $params = array() ) {
 		// In case int value is provided.
 		if ( ! $post instanceof \WP_Post ) {
 			$post = get_post( $post );
@@ -73,14 +74,43 @@ class Post {
 			}
 
 			if ( in_array( 'children', $additional_fields ) ) {
-				$children = get_children(
-					array(
-						'post_parent' => $post->ID,
-						'post_type'   => $post->post_type,
-					)
+				$query_params = array(
+					'post_parent' => $post->ID,
+					'post_type'   => $post->post_type,
 				);
 
-				$data['children'] = array_map( array( self::class, 'get_postdata' ), $children );
+				// Default order is menu_order for hierarchical post types such as page.
+				if ( is_post_type_hierarchical( $post->post_type ) ) {
+					$query_params['orderby'] = 'menu_order';
+					$query_params['order']   = 'ASC';
+				}
+
+				if ( isset( $params['children_per_page'] ) ) {
+					$query_params['posts_per_page'] = $params['children_per_page'];
+				}
+
+				if ( isset( $params['children_page'] ) ) {
+					$query_params['paged'] = $params['children_page'];
+				}
+
+				if ( isset( $params['orderby'] ) ) {
+					$query_params['orderby'] = $params['orderby'];
+				}
+
+				if ( isset( $params['order'] ) ) {
+					$query_params['order'] = $params['order'];
+				}
+
+				$get_posts = new \WP_Query();
+				$children  = $get_posts->query( $query_params );
+
+				$data['children'] = array(
+					'total_count' => $get_posts->found_posts,
+					'total_pages' => $get_posts->max_num_pages,
+					'per_page'    => isset( $query_params['posts_per_page'] ) ? $query_params['posts_per_page'] : get_option( 'posts_per_page' ),
+					'page'        => isset( $query_params['paged'] ) ? $query_params['paged'] : 1,
+					'list'        => array_map( array( self::class, 'get_postdata' ), $children ),
+				);
 			}
 
 			if ( in_array( 'parent', $additional_fields ) ) {
