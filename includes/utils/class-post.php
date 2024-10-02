@@ -93,23 +93,13 @@ class Post {
 					$query_params['paged'] = $params['children_page'];
 				}
 
-				if ( isset( $params['orderby'] ) ) {
-					$query_params['orderby'] = $params['orderby'];
-				}
-
-				if ( isset( $params['order'] ) ) {
-					$query_params['order'] = $params['order'];
-				}
-
-				$get_posts = new \WP_Query();
-				$children  = $get_posts->query( $query_params );
+				$posts_query = new \WP_Query();
+				$children    = $posts_query->query( $query_params );
 
 				$data['children'] = array(
-					'total_count' => $get_posts->found_posts,
-					'total_pages' => $get_posts->max_num_pages,
-					'per_page'    => (int) ( isset( $query_params['posts_per_page'] ) ? $query_params['posts_per_page'] : get_option( 'posts_per_page' ) ),
-					'page'        => (int) ( isset( $query_params['paged'] ) ? $query_params['paged'] : 1 ),
-					'list'        => array_map( array( self::class, 'get_postdata' ), $children ),
+					'total'       => $posts_query->found_posts,
+					'total_pages' => (int) ceil( $posts_query->found_posts / (int) $posts_query->query_vars['posts_per_page'] ),
+					'list'        => $children,
 				);
 			}
 

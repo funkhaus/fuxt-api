@@ -97,19 +97,34 @@ class REST_Post_Controller {
 		$additional_fields = $this->get_additional_fields_for_response( $request );
 
 		// Prepare params.
-		$params       = array();
-		$param_fields = array(
-			'children_per_page',
-			'children_page',
-		);
+		$params = array();
 
-		foreach ( $param_fields as $field ) {
-			if ( isset( $request[ $field ] ) ) {
-				$params[ $field ] = $request[ $field ];
+		if ( in_array( 'children', $additional_fields ) ) {
+			$param_fields = array(
+				'children_per_page',
+				'children_page',
+			);
+
+			foreach ( $param_fields as $field ) {
+				if ( isset( $request[ $field ] ) ) {
+					$params[ $field ] = $request[ $field ];
+				}
 			}
 		}
 
-		return rest_ensure_response( PostUtils::get_postdata( $post, $additional_fields, $params ) );
+		$post     = PostUtils::get_postdata( $post, $additional_fields, $params );
+		$response = rest_ensure_response( null );
+		if ( isset( $post['children'] ) ) {
+			$children         = $post['children'];
+			$post['children'] = $children['list'];
+
+			$response->header( 'X-WP-Total', (int) $children['total'] );
+			$response->header( 'X-WP-TotalPages', (int) $children['total_pages'] );
+		}
+
+		$response->set_data( $post );
+
+		return $response;
 	}
 
 	/**
