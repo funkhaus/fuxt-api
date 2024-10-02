@@ -78,6 +78,9 @@ class REST_Settings_Controller {
 			'frontendUrl'        => get_option( 'home' ),
 			'themeScreenshotUrl' => wp_get_theme()->get_screenshot(),
 		);
+
+		$settings = apply_filters( 'fuxt_api_settings_response', $settings );
+
 		return rest_ensure_response( $settings );
 	}
 }
