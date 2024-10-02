@@ -107,8 +107,8 @@ class Post {
 				$data['children'] = array(
 					'total_count' => $get_posts->found_posts,
 					'total_pages' => $get_posts->max_num_pages,
-					'per_page'    => isset( $query_params['posts_per_page'] ) ? $query_params['posts_per_page'] : get_option( 'posts_per_page' ),
-					'page'        => isset( $query_params['paged'] ) ? $query_params['paged'] : 1,
+					'per_page'    => (int) ( isset( $query_params['posts_per_page'] ) ? $query_params['posts_per_page'] : get_option( 'posts_per_page' ) ),
+					'page'        => (int) ( isset( $query_params['paged'] ) ? $query_params['paged'] : 1 ),
 					'list'        => array_map( array( self::class, 'get_postdata' ), $children ),
 				);
 			}
