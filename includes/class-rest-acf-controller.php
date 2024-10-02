@@ -80,9 +80,17 @@ class REST_Acf_Controller {
 	 * @return \WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$name = $request['name'];
+		$option = AcfUtils::get_option_by_name( $request['name'] );
 
-		return rest_ensure_response( AcfUtils::get_option_by_name( $name ) );
+		if ( is_null( $option ) ) {
+			return new \WP_Error(
+				'rest_post_invalid_acf_setting_name',
+				__( 'Invalid ACF Setting Name.', 'fuxt-api' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		return rest_ensure_response( $option );
 	}
 
 }
