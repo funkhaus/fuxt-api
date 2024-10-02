@@ -104,11 +104,13 @@ class Acf {
 						$sub_fields = array_combine( array_column( $sub_fields, 'name' ), array_values( $sub_fields ) );
 
 						$value = array();
-						foreach ( $field['value'] as $row ) {
-							foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
-								$sub_field['value'] = $row[ $sub_field_name ] ?? null;
+						if ( $field['value'] ) {
+							foreach ( $field['value'] as $row ) {
+								foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
+									$sub_field['value'] = $row[ $sub_field_name ] ?? null;
+								}
+								$value[] = self::get_data_by_fields( $sub_fields );
 							}
-							$value[] = self::get_data_by_fields( $sub_fields );
 						}
 
 						break;
