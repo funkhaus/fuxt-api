@@ -101,8 +101,8 @@ class REST_Post_Controller {
 
 		if ( in_array( 'children', $additional_fields ) ) {
 			$param_fields = array(
-				'children_per_page',
-				'children_page',
+				'per_page',
+				'page',
 			);
 
 			foreach ( $param_fields as $field ) {

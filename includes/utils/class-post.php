@@ -85,21 +85,32 @@ class Post {
 					$query_params['order']   = 'ASC';
 				}
 
-				if ( isset( $params['children_per_page'] ) ) {
-					$query_params['posts_per_page'] = $params['children_per_page'];
+				if ( isset( $params['per_page'] ) ) {
+					$query_params['posts_per_page'] = $params['per_page'];
 				}
 
-				if ( isset( $params['children_page'] ) ) {
-					$query_params['paged'] = $params['children_page'];
+				if ( isset( $params['page'] ) ) {
+					$query_params['paged'] = $params['page'];
 				}
 
 				$posts_query = new \WP_Query();
 				$children    = $posts_query->query( $query_params );
 
+				$children_data = array();
+				if ( $children ) {
+					foreach ( $children as $child ) {
+						$children_data[] = self::get_postdata(
+							$child,
+							array( 'children' ),
+							array( 'per_page' => 1 )
+						);
+					}
+				}
+
 				$data['children'] = array(
 					'total'       => $posts_query->found_posts,
 					'total_pages' => (int) ceil( $posts_query->found_posts / (int) $posts_query->query_vars['posts_per_page'] ),
-					'list'        => $children,
+					'list'        => $children_data,
 				);
 			}
 
