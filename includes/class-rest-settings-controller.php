@@ -72,11 +72,11 @@ class REST_Settings_Controller {
 	 */
 	public function get_item( $request ) {
 		$settings = array(
-			'title'              => get_option( 'blogname' ),
-			'description'        => get_option( 'blogdescription' ),
-			'backendUrl'         => get_option( 'siteurl' ),
-			'frontendUrl'        => get_option( 'home' ),
-			'themeScreenshotUrl' => wp_get_theme()->get_screenshot(),
+			'title'                => get_option( 'blogname' ),
+			'description'          => get_option( 'blogdescription' ),
+			'backend_url'          => get_option( 'siteurl' ),
+			'frontend_url'         => get_option( 'home' ),
+			'theme_screenshot_url' => wp_get_theme()->get_screenshot(),
 		);
 
 		$settings = apply_filters( 'fuxt_api_settings_response', $settings );
