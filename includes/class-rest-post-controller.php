@@ -105,6 +105,8 @@ class REST_Post_Controller {
 				'page',
 			);
 
+			$params['depth'] = isset( $request['depth'] ) ? $request['depth'] : ( isset( $request['children'] ) ? $request['children'] : 1 );
+
 			foreach ( $param_fields as $field ) {
 				if ( isset( $request[ $field ] ) ) {
 					$params[ $field ] = $request[ $field ];
@@ -136,12 +138,15 @@ class REST_Post_Controller {
 	 * @return string[] Fields to be included in the response.
 	 */
 	public function get_additional_fields_for_response( $request ) {
+		$raw_fields = isset( $request['fields'] ) ? $request['fields'] : array();
 
-		if ( ! isset( $request['fields'] ) ) {
-			return array();
+		$requested_fields = wp_parse_list( $raw_fields );
+
+		// children=depth case handling.
+		if ( isset( $request['children'] ) ) {
+			$requested_fields[] = 'children';
 		}
 
-		$requested_fields = wp_parse_list( $request['fields'] );
 		if ( 0 === count( $requested_fields ) ) {
 			return array();
 		}
@@ -155,6 +160,7 @@ class REST_Post_Controller {
 			'ancestors',
 			'next',
 			'prev',
+			'depth',
 		);
 
 		// Trim off outside whitespace from the comma delimited list.
