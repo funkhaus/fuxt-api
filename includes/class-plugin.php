@@ -22,5 +22,6 @@ class Plugin extends Plugin_Base {
 		( new REST_Settings_Controller() )->init();
 		( new REST_Menu_Controller() )->init();
 		( new REST_Acf_Controller() )->init();
+		( new REST_Posts_Controller() )->init();
 	}
 }

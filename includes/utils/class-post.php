@@ -22,10 +22,11 @@ class Post {
 	 *
 	 * @param \WP_Post|int $post              Post object.
 	 * @param array        $additional_fields Additional post fields to return.
+	 * @param array        $params            Additional parameters.
 	 *
 	 * @return array|null
 	 */
-	public static function get_postdata( $post, $additional_fields = array() ) {
+	public static function get_postdata( $post, $additional_fields = array(), $params = array() ) {
 		// In case int value is provided.
 		if ( ! $post instanceof \WP_Post ) {
 			$post = get_post( $post );
@@ -73,14 +74,51 @@ class Post {
 			}
 
 			if ( in_array( 'children', $additional_fields ) ) {
-				$children = get_children(
-					array(
-						'post_parent' => $post->ID,
-						'post_type'   => $post->post_type,
-					)
+				$query_params = array(
+					'post_parent' => $post->ID,
+					'post_type'   => $post->post_type,
 				);
 
-				$data['children'] = array_map( array( self::class, 'get_postdata' ), $children );
+				// Default order is menu_order for hierarchical post types such as page.
+				if ( is_post_type_hierarchical( $post->post_type ) ) {
+					$query_params['orderby'] = 'menu_order';
+					$query_params['order']   = 'ASC';
+				}
+
+				if ( isset( $params['per_page'] ) ) {
+					$query_params['posts_per_page'] = $params['per_page'];
+				}
+
+				if ( isset( $params['page'] ) ) {
+					$query_params['paged'] = $params['page'];
+				}
+
+				$posts_query = new \WP_Query();
+				$children    = $posts_query->query( $query_params );
+
+				$children_data = array();
+				if ( $children ) {
+					$depth = (int) $params['depth'];
+
+					$child_additional_fields = array();
+					if ( $depth > 1 ) {
+						$child_additional_fields[] = 'children';
+					}
+
+					foreach ( $children as $child ) {
+						$children_data[] = self::get_postdata(
+							$child,
+							$child_additional_fields,
+							array( 'per_page' => 1 )
+						);
+					}
+				}
+
+				$data['children'] = array(
+					'total'       => $posts_query->found_posts,
+					'total_pages' => (int) ceil( $posts_query->found_posts / (int) $posts_query->query_vars['posts_per_page'] ),
+					'list'        => $children_data,
+				);
 			}
 
 			if ( in_array( 'parent', $additional_fields ) ) {
@@ -199,5 +237,64 @@ class Post {
 		$post       = get_page_by_path( $uri, OBJECT, $post_types );
 
 		return $post;
+	}
+
+	/**
+	 * Get posts.
+	 *
+	 * @param \WP_REST_Request $params Parameters
+	 *
+	 * @return array
+	 */
+	public static function get_posts( $params, $additional_fields ) {
+		$query_params = array();
+
+		if ( isset( $params['post_parent_uri'] ) ) {
+			$parent_post = self::get_post_by_uri( $params['post_parent_uri'] );
+
+			if ( empty( $parent_post ) ) {
+				return null;
+			}
+
+			$query_params['post_parent'] = $parent_post->ID;
+			$query_params['post_type']   = $parent_post->post_type;
+
+			// Default order is menu_order for hierarchical post types such as page.
+			if ( is_post_type_hierarchical( $parent_post->post_type ) ) {
+				$query_params['orderby'] = 'menu_order';
+				$query_params['order']   = 'ASC';
+			}
+		}
+
+		if ( isset( $params['per_page'] ) ) {
+			$query_params['posts_per_page'] = $params['per_page'];
+		}
+
+		if ( isset( $params['page'] ) ) {
+			$query_params['paged'] = $params['page'];
+		}
+
+		if ( isset( $params['orderby'] ) ) {
+			$query_params['orderby'] = $params['orderby'];
+		}
+
+		if ( isset( $params['order'] ) ) {
+			$query_params['order'] = $params['order'];
+		}
+
+		$posts_query = new \WP_Query();
+		$posts       = $posts_query->query( $query_params );
+
+		$post_list = array();
+
+		foreach ( $posts as $post ) {
+			$post_list[] = self::get_postdata( $post, $additional_fields );
+		}
+
+		return array(
+			'total'       => $posts_query->found_posts,
+			'total_pages' => (int) ceil( $posts_query->found_posts / (int) $posts_query->query_vars['posts_per_page'] ),
+			'list'        => $post_list,
+		);
 	}
 }

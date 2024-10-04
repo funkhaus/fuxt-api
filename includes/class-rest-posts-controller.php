@@ -1,6 +1,6 @@
 <?php
 /**
- * Class REST_Post_Controller
+ * Class REST_Posts_Controller
  *
  * @package FuxtApi
  */
@@ -10,15 +10,15 @@ namespace FuxtApi;
 use FuxtApi\Utils\Post as PostUtils;
 
 /**
- * Class REST_Post_Controller
+ * Class REST_Posts_Controller
  *
  * @package FuxtApi
  */
-class REST_Post_Controller {
+class REST_Posts_Controller {
 
 	const REST_NAMESPACE = 'fuxt/v1';
 
-	const ROUTE = '/post';
+	const ROUTE = '/posts';
 
 	/**
 	 * Init function.
@@ -62,8 +62,24 @@ class REST_Post_Controller {
 	 */
 	public function get_collection_params() {
 		return array(
-			'uri' => array(
-				'description' => __( 'Post slug', 'fuxt-api' ),
+			'post_parent_uri' => array(
+				'description' => __( 'Parent post slug', 'fuxt-api' ),
+				'type'        => 'string',
+			),
+			'orderby'         => array(
+				'description' => __( 'orderby', 'fuxt-api' ),
+				'type'        => 'string',
+			),
+			'order'           => array(
+				'description' => __( 'order', 'fuxt-api' ),
+				'type'        => 'string',
+			),
+			'per_page'        => array(
+				'description' => __( 'Per page', 'fuxt-api' ),
+				'type'        => 'string',
+			),
+			'page'            => array(
+				'description' => __( 'Page number', 'fuxt-api' ),
 				'type'        => 'string',
 			),
 		);
@@ -76,55 +92,21 @@ class REST_Post_Controller {
 	 * @return \WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$post = PostUtils::get_post_by_uri( $request['uri'] ?? '' );
-
-		if ( empty( $post ) ) {
-			return new \WP_Error(
-				'rest_post_invalid_uri',
-				__( 'Invalid page URI.', 'fuxt-api' ),
-				array( 'status' => 404 )
-			);
-		}
-
-		if ( ! $this->check_read_permission( $post ) ) {
-			return new \WP_Error(
-				'rest_forbidden_context',
-				__( 'Sorry, you are not allowed to access this page.', 'fuxt-api' ),
-				array( 'status' => 404 )
-			);
-		}
-
 		$additional_fields = $this->get_additional_fields_for_response( $request );
+		$posts             = PostUtils::get_posts( $request, $additional_fields );
 
-		// Prepare params.
-		$params = array();
-
-		if ( in_array( 'children', $additional_fields ) ) {
-			$param_fields = array(
-				'per_page',
-				'page',
+		if ( empty( $posts ) ) {
+			return new \WP_Error(
+				'rest_post_invalid_request',
+				__( 'Invalid request params.', 'fuxt-api' ),
+				array( 'status' => 404 )
 			);
-
-			$params['depth'] = isset( $request['depth'] ) ? $request['depth'] : ( isset( $request['children'] ) ? $request['children'] : 1 );
-
-			foreach ( $param_fields as $field ) {
-				if ( isset( $request[ $field ] ) ) {
-					$params[ $field ] = $request[ $field ];
-				}
-			}
 		}
 
-		$post     = PostUtils::get_postdata( $post, $additional_fields, $params );
-		$response = rest_ensure_response( null );
-		if ( isset( $post['children'] ) ) {
-			$children         = $post['children'];
-			$post['children'] = $children['list'];
+		$response = rest_ensure_response( $posts['list'] );
 
-			$response->header( 'X-WP-Total', (int) $children['total'] );
-			$response->header( 'X-WP-TotalPages', (int) $children['total_pages'] );
-		}
-
-		$response->set_data( $post );
+		$response->header( 'X-WP-Total', (int) $posts['total'] );
+		$response->header( 'X-WP-TotalPages', (int) $posts['total_pages'] );
 
 		return $response;
 	}
@@ -138,15 +120,12 @@ class REST_Post_Controller {
 	 * @return string[] Fields to be included in the response.
 	 */
 	public function get_additional_fields_for_response( $request ) {
-		$raw_fields = isset( $request['fields'] ) ? $request['fields'] : array();
 
-		$requested_fields = wp_parse_list( $raw_fields );
-
-		// children=depth case handling.
-		if ( isset( $request['children'] ) ) {
-			$requested_fields[] = 'children';
+		if ( ! isset( $request['fields'] ) ) {
+			return array();
 		}
 
+		$requested_fields = wp_parse_list( $request['fields'] );
 		if ( 0 === count( $requested_fields ) ) {
 			return array();
 		}
@@ -160,7 +139,6 @@ class REST_Post_Controller {
 			'ancestors',
 			'next',
 			'prev',
-			'depth',
 		);
 
 		// Trim off outside whitespace from the comma delimited list.
