@@ -113,7 +113,7 @@ class Post {
 							$child_additional_fields,
 							array(
 								'per_page' => 1,
-								'depth' => $depth
+								'depth'    => $depth,
 							)
 						);
 					}
