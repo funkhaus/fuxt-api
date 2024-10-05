@@ -98,18 +98,23 @@ class Post {
 
 				$children_data = array();
 				if ( $children ) {
-					$depth = (int) $params['depth'];
+					$depth = isset( $params['depth'] ) ? (int) $params['depth'] : 1;
 
 					$child_additional_fields = array();
 					if ( $depth > 1 ) {
 						$child_additional_fields[] = 'children';
 					}
 
+					$depth -= 1;
+
 					foreach ( $children as $child ) {
 						$children_data[] = self::get_postdata(
 							$child,
 							$child_additional_fields,
-							array( 'per_page' => 1 )
+							array(
+								'per_page' => 1,
+								'depth' => $depth
+							)
 						);
 					}
 				}
