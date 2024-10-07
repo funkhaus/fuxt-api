@@ -238,6 +238,12 @@ class Post {
 
 		$uri = Utils::get_relative_url( $uri );
 
+		// homepage check.
+		if ( empty( trim( $uri, '/' ) ) ) {
+			$front_page_id = get_option( 'page_on_front' );
+			return get_post( $front_page_id );
+		}
+
 		$post_types = array_merge( array( 'post', 'page' ), $post_types );
 		$post       = get_page_by_path( $uri, OBJECT, $post_types );
 
