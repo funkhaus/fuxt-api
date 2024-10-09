@@ -130,51 +130,51 @@ class REST_Post_Controller {
 					'description' => __( 'Featured media for the post.' ),
 					'type'        => array( 'object', 'null' ),
 					'properties'  => array(
-						'id'     => array(
+						'id'          => array(
 							'description' => __( 'The ID of the featured media for the post.' ),
 							'type'        => 'integer',
 						),
-						'src'    => array(
+						'src'         => array(
 							'description' => __( 'Full-size source URL' ),
 							'type'        => 'string',
 						),
-						'width'  => array(
+						'width'       => array(
 							'description' => __( 'Full-size width' ),
 							'type'        => 'integer',
 						),
-						'height' => array(
+						'height'      => array(
 							'description' => __( 'Full-size height' ),
 							'type'        => 'integer',
 						),
-						'alt'    => array(
+						'alt'         => array(
 							'description' => __( 'Alt value' ),
 							'type'        => 'string',
 						),
-						'caption'    => array(
+						'caption'     => array(
 							'description' => __( 'Caption' ),
 							'type'        => 'string',
 						),
-						'title'    => array(
+						'title'       => array(
 							'description' => __( 'Title' ),
 							'type'        => 'string',
 						),
-						'description'    => array(
+						'description' => array(
 							'description' => __( 'Description' ),
 							'type'        => 'string',
 						),
-						'srcset' => array(
+						'srcset'      => array(
 							'description' => __( 'srcset string' ),
 							'type'        => array( 'string', null ),
 						),
-						'sizes'  => array(
+						'sizes'       => array(
 							'description' => __( 'Sizes string' ),
 							'type'        => array( 'string', null ),
 						),
-						'meta'   => array(
+						'meta'        => array(
 							'description' => __( 'Meta data' ),
 							'type'        => array( 'object', null ),
 						),
-						'acf'    => array(
+						'acf'         => array(
 							'description' => __( 'ACF data' ),
 							'type'        => array( 'object', null ),
 						),
