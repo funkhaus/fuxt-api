@@ -41,10 +41,20 @@ class REST_Acf_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
+				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
 	}
 
+	public function get_item_schema() {
+		$schema = array(
+			'$schema' => 'http://json-schema.org/draft-04/schema#',
+			'title'   => 'fuxt_acf_options',
+			'type'    => 'object',
+		);
+
+		return $schema;
+	}
 	/**
 	 * Checks if a given request has access to read acf setting.
 	 *
@@ -67,7 +77,7 @@ class REST_Acf_Controller {
 	public function get_collection_params() {
 		return array(
 			'name' => array(
-				'description' => __( 'Menu name', 'fuxt-api' ),
+				'description' => __( 'ACF option name', 'fuxt-api' ),
 				'type'        => 'string',
 			),
 		);

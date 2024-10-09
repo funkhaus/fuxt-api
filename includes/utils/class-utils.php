@@ -124,8 +124,24 @@ class Utils {
 			'id'     => $term_taxonomy->term_id,
 			'name'   => $term_taxonomy->name,
 			'slug'   => $term_taxonomy->slug,
-			'parent' => self::get_termdata( $term_taxonomy->parent ),
+			'parent' => $term_taxonomy->parent ? self::get_termdata( $term_taxonomy->parent ) : null,
 			'uri'    => self::get_relative_url( get_term_link( $term_taxonomy ) ),
 		);
+	}
+
+	public static function get_post_types() {
+		static $post_types = null;
+		if ( empty( $post_types ) ) {
+			$post_types = get_post_types(
+				array(
+					'public'       => true,
+					'show_in_rest' => true,
+					'_builtin'     => false,
+				)
+			);
+			$post_types = array_merge( array( 'post', 'page' ), $post_types );
+		}
+
+		return $post_types;
 	}
 }

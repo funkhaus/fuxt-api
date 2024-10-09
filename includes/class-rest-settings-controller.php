@@ -41,8 +41,48 @@ class REST_Settings_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
+				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
+	}
+	/**
+	 * Item schema
+	 *
+	 * @return array.
+	 */
+	public function get_item_schema() {
+		$schema = array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'fuxt_settings',
+			'type'       => 'object',
+			'properties' => array(
+				'title'                => array(
+					'description' => __( 'Site title.', 'fuxt-api' ),
+					'type'        => 'string',
+				),
+				'description'          => array(
+					'description' => __( 'Tagline. Explains what this site is about', 'fuxt-api' ),
+					'type'        => 'string',
+				),
+				'backend_url'          => array(
+					'description' => __( 'WordPress Address (URL).', 'fuxt-api' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+				),
+				'frontend_url'         => array(
+					'description' => __( 'Site Address (URL). Primary front end URL.', 'fuxt-api' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+				),
+				'theme_screenshot_url' => array(
+					'description' => __( 'Theme screenshot image url.', 'fuxt-api' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+				),
+			),
+		);
+
+		return $schema;
 	}
 
 	/**
