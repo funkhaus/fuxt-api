@@ -150,6 +150,18 @@ class REST_Post_Controller {
 							'description' => __( 'Alt value' ),
 							'type'        => 'string',
 						),
+						'caption'    => array(
+							'description' => __( 'Caption' ),
+							'type'        => 'string',
+						),
+						'title'    => array(
+							'description' => __( 'Title' ),
+							'type'        => 'string',
+						),
+						'description'    => array(
+							'description' => __( 'Description' ),
+							'type'        => 'string',
+						),
 						'srcset' => array(
 							'description' => __( 'srcset string' ),
 							'type'        => array( 'string', null ),
