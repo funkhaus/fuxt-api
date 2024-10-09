@@ -71,12 +71,17 @@ class Utils {
 		$width  = $image[1];
 		$height = $image[2];
 
+		$image_obj = get_post( $media_id );
+
 		$media_data = array(
-			'id'     => $media_id,
-			'src'    => $src,
-			'width'  => $width,
-			'height' => $height,
-			'alt'    => trim( strip_tags( get_post_meta( $media_id, '_wp_attachment_image_alt', true ) ) ),
+			'id'          => $media_id,
+			'src'         => $src,
+			'width'       => $width,
+			'height'      => $height,
+			'alt'         => trim( strip_tags( get_post_meta( $media_id, '_wp_attachment_image_alt', true ) ) ),
+			'caption'     => $image_obj->post_excerpt,
+			'title'       => $image_obj->post_title,
+			'description' => apply_filters( 'the_content', $image_obj->post_content ),
 		);
 
 		// Add meta data.
