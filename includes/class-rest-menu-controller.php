@@ -41,8 +41,88 @@ class REST_Menu_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
+				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
+	}
+
+	public function get_item_schema() {
+		$schema = array(
+			'$schema' => 'http://json-schema.org/draft-04/schema#',
+			'title'   => 'fuxt_menu',
+			'type'    => 'array',
+			'items'   => array(
+				'type'       => 'object',
+				'title'      => 'fuxt_menu_item',
+				'properties' => array(
+					'id'          => array(
+						'description' => __( 'Menu ID' ),
+						'type'        => 'integer',
+					),
+					'title'       => array(
+						'description' => __( 'Menu title' ),
+						'type'        => 'string',
+					),
+					'slug'        => array(
+						'description' => __( 'Menu slug' ),
+						'type'        => 'string',
+					),
+					'menu_order'  => array(
+						'description' => __( 'Menu order ID.' ),
+						'type'        => 'integer',
+					),
+					'url'         => array(
+						'description' => __( 'Menu URL' ),
+						'type'        => 'string',
+						'format'      => 'uri',
+					),
+					'target'      => array(
+						'description' => __( 'Target' ),
+						'type'        => 'string',
+					),
+					'attr_title'  => array(
+						'description' => __( 'Menu link attribute title that shows on hover' ),
+						'type'        => 'string',
+					),
+					'description' => array(
+						'description' => __( 'Menu description' ),
+						'type'        => 'string',
+					),
+					'classes'     => array(
+						'description' => __( 'Menu classes string' ),
+						'type'        => 'array',
+						'items'       => array(
+							'type' => 'string',
+						),
+					),
+					'xfn'         => array(
+						'description' => __( 'Menu XFN' ),
+						'type'        => 'string',
+					),
+					'parent_id'   => array(
+						'description' => __( 'Menu parent ID' ),
+						'type'        => 'integer',
+					),
+					'type'        => array(
+						'description' => __( 'Menu type' ),
+						'type'        => 'string',
+					),
+					'uri'         => array(
+						'description' => __( '(For type "custom" only) Menu uri. Relative path to home url.' ),
+						'type'        => 'string',
+					),
+					'children'    => array(
+						'description' => __( 'Children items list.', 'fuxt-api' ),
+						'type'        => array( 'array', 'null' ),
+						'items'       => array(
+							'type' => 'object',
+						),
+					),
+				),
+			),
+		);
+
+		return $schema;
 	}
 
 	/**

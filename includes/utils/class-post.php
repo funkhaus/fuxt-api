@@ -42,7 +42,7 @@ class Post {
 			'id'             => $post->ID,
 			'guid'           => $post->guid,
 			'title'          => get_the_title( $post ),
-			'post_type'      => $post->post_type,
+			// 'post_type'      => $post->post_type,
 			'content'        => apply_filters( 'the_content', $post->post_content ),
 			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
 			'slug'           => $post->post_name,
@@ -163,6 +163,10 @@ class Post {
 		// Get all siblings
 		$siblings = self::get_sibling_posts( $post );
 
+		if ( empty( $siblings ) ) {
+			return null;
+		}
+
 		$sibling_ids = array_map(
 			function( $sibling ) {
 				return $sibling->ID;
@@ -228,14 +232,6 @@ class Post {
 	 * @return \WP_Post|null
 	 */
 	public static function get_post_by_uri( $uri ) {
-		$post_types = get_post_types(
-			array(
-				'public'       => true,
-				'show_in_rest' => true,
-				'_builtin'     => false,
-			)
-		);
-
 		$uri = Utils::get_relative_url( $uri );
 
 		// homepage check.
@@ -244,8 +240,7 @@ class Post {
 			return get_post( $front_page_id );
 		}
 
-		$post_types = array_merge( array( 'post', 'page' ), $post_types );
-		$post       = get_page_by_path( $uri, OBJECT, $post_types );
+		$post = get_page_by_path( $uri, OBJECT, Utils::get_post_types() );
 
 		return $post;
 	}
@@ -277,6 +272,12 @@ class Post {
 			}
 		}
 
+		if ( isset( $params['post_type'] ) ) {
+			$query_params['post_type'] = $params['post_type'];
+		} else {
+			$query_params['post_type'] = 'any';
+		}
+
 		if ( isset( $params['per_page'] ) ) {
 			$query_params['posts_per_page'] = $params['per_page'];
 		}
@@ -299,7 +300,13 @@ class Post {
 		$post_list = array();
 
 		foreach ( $posts as $post ) {
-			$post_list[] = self::get_postdata( $post, $additional_fields );
+			$post_data = self::get_postdata( $post, $additional_fields );
+			if ( isset( $post_data['children'] ) ) {
+				$children              = $post_data['children'];
+				$post_data['children'] = $children['list'];
+			}
+
+			$post_list[] = $post_data;
 		}
 
 		return array(

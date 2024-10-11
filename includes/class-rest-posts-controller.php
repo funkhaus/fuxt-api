@@ -8,6 +8,7 @@
 namespace FuxtApi;
 
 use FuxtApi\Utils\Post as PostUtils;
+use FuxtApi\Utils\Utils as Utils;
 
 /**
  * Class REST_Posts_Controller
@@ -41,8 +42,209 @@ class REST_Posts_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
+				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
+	}
+
+	public function get_item_schema() {
+		$schema = array(
+			'$schema' => 'http://json-schema.org/draft-04/schema#',
+			'type'    => 'array',
+			'title'   => 'fuxt_posts',
+			'items'   => array(
+				'type'       => 'object',
+				'properties' => array(
+					'author_id'      => array(
+						'description' => __( 'The ID for the author of the post.' ),
+						'type'        => 'integer',
+					),
+					'content'        => array(
+						'description' => __( 'The content for the post.' ),
+						'type'        => 'string',
+					),
+					'date'           => array(
+						'description' => __( "The date the post was published, in the site's timezone." ),
+						'type'        => array( 'string', 'null' ),
+						'format'      => 'date-time',
+					),
+					'excerpt'        => array(
+						'description' => __( 'The excerpt for the post.' ),
+						'type'        => 'string',
+					),
+					'featured_media' => array(
+						'description' => __( 'Featured media for the post.' ),
+						'type'        => array( 'object', 'null' ),
+						'properties'  => array(
+							'id'          => array(
+								'description' => __( 'The ID of the featured media for the post.' ),
+								'type'        => 'integer',
+							),
+							'src'         => array(
+								'description' => __( 'Full-size source URL' ),
+								'type'        => 'string',
+							),
+							'width'       => array(
+								'description' => __( 'Full-size width' ),
+								'type'        => 'integer',
+							),
+							'height'      => array(
+								'description' => __( 'Full-size height' ),
+								'type'        => 'integer',
+							),
+							'alt'         => array(
+								'description' => __( 'Alt value' ),
+								'type'        => 'string',
+							),
+							'caption'     => array(
+								'description' => __( 'Caption' ),
+								'type'        => 'string',
+							),
+							'title'       => array(
+								'description' => __( 'Title' ),
+								'type'        => 'string',
+							),
+							'description' => array(
+								'description' => __( 'Description' ),
+								'type'        => 'string',
+							),
+							'srcset'      => array(
+								'description' => __( 'srcset string' ),
+								'type'        => array( 'string', null ),
+							),
+							'sizes'       => array(
+								'description' => __( 'Sizes string' ),
+								'type'        => array( 'string', null ),
+							),
+							'meta'        => array(
+								'description' => __( 'Meta data' ),
+								'type'        => array( 'object', null ),
+							),
+							'acf'         => array(
+								'description' => __( 'ACF data' ),
+								'type'        => array( 'object', null ),
+							),
+						),
+					),
+					'guid'           => array(
+						'description' => __( 'The globally unique identifier for the post.' ),
+						'type'        => 'string',
+					),
+					'id'             => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+					'modified'       => array(
+						'description' => __( "The date the post was last modified, in the site's timezone." ),
+						'type'        => 'string',
+						'format'      => 'date-time',
+					),
+					'slug'           => array(
+						'description' => __( 'An alphanumeric identifier for the post unique to its type.' ),
+						'type'        => 'string',
+					),
+					'status'         => array(
+						'description' => __( 'A named status for the post.' ),
+						'type'        => 'string',
+						'enum'        => array_keys( get_post_stati( array( 'internal' => false ) ) ),
+					),
+					'title'          => array(
+						'description' => __( 'The title for the post.' ),
+						'type'        => 'string',
+					),
+					'type'           => array(
+						'description' => __( 'Type of post.' ),
+						'type'        => 'string',
+					),
+					'uri'            => array(
+						'description' => __( 'Relative URL to the post.' ),
+						'type'        => 'string',
+						'format'      => 'string',
+					),
+					'url'            => array(
+						'description' => __( 'Absolute URL to the post.' ),
+						'type'        => 'string',
+						'format'      => 'uri',
+					),
+					'acf'            => array(
+						'description' => __( '(Optional by request) ACF data.' ),
+						'type'        => array( 'object', 'null' ),
+					),
+					'terms'          => array(
+						'description' => __( '(Optional by request) Terms data.' ),
+						'type'        => array( 'object', 'null' ),
+						'properties'  => array(
+							'post_tag' => array(
+								'description' => __( 'Post tags array' ),
+								'type'        => array( 'array', 'null' ),
+								'items'       => array(
+									'type'       => 'object',
+									'title'      => 'fuxt_term',
+									'properties' => array(
+										'id'     => array(
+											'description' => __( 'Term ID' ),
+											'type'        => 'integer',
+										),
+										'name'   => array(
+											'description' => __( 'Term name' ),
+											'type'        => 'string',
+										),
+										'parent' => array(
+											'description' => __( 'Term parent object' ),
+											'type'        => array( 'object', 'null' ),
+										),
+										'slug'   => array(
+											'description' => __( 'Term name' ),
+											'type'        => 'string',
+										),
+										'uri'    => array(
+											'description' => __( 'Term Uri' ),
+											'type'        => 'string',
+											'format'      => 'uri',
+										),
+									),
+								),
+							),
+							'category' => array(
+								'description' => __( 'Post category array' ),
+								'type'        => array( 'array', 'null' ),
+								'items'       => array(
+									'type' => 'object',
+								),
+							),
+						),
+					),
+					'siblings'       => array(
+						'description' => __( '(Optional by request) Siblings data.' ),
+						'type'        => array( 'array', 'null' ),
+						'items'       => array(
+							'type' => 'object',
+						),
+					),
+					'children'       => array(
+						'description' => __( '(Optional by request) Children data. Ordered by menu_order ASC for hierarchical post types. Can be filtered by fields `post_peage`, `paged`, and `depth` value' ),
+						'type'        => array( 'array', 'null' ),
+						'items'       => array(
+							'type' => 'object',
+						),
+					),
+					'parent'         => array(
+						'description' => __( '(Optional by request) parent data.' ),
+						'type'        => array( 'object', 'null' ),
+					),
+					'next'           => array(
+						'description' => __( '(Optional by request) next data.' ),
+						'type'        => array( 'object', 'null' ),
+					),
+					'prev'           => array(
+						'description' => __( '(Optional by request) Previous data.' ),
+						'type'        => array( 'object', 'null' ),
+					),
+				),
+			),
+		);
+
+		return $schema;
 	}
 
 	/**
@@ -69,18 +271,58 @@ class REST_Posts_Controller {
 			'orderby'         => array(
 				'description' => __( 'orderby', 'fuxt-api' ),
 				'type'        => 'string',
+				'default'     => 'date',
+				'enum'        => array(
+					'author',
+					'date',
+					'id',
+					'include',
+					'modified',
+					'parent',
+					'relevance',
+					'slug',
+					'include_slugs',
+					'title',
+				),
 			),
 			'order'           => array(
 				'description' => __( 'order', 'fuxt-api' ),
 				'type'        => 'string',
+				'default'     => 'desc',
+				'enum'        => array( 'asc', 'desc' ),
 			),
 			'per_page'        => array(
 				'description' => __( 'Per page', 'fuxt-api' ),
-				'type'        => 'string',
+				'type'        => 'integer',
+				'default'     => 10,
+				'minimum'     => 1,
+				'maximum'     => 100,
 			),
 			'page'            => array(
 				'description' => __( 'Page number', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
+			'post_type'       => array(
+				'description' => __( 'Post type', 'fuxt-api' ),
 				'type'        => 'string',
+				'enum'        => Utils::get_post_types(),
+			),
+			'fields'          => array(
+				'description' => __( 'Additional fields to return. Comma separated string of fields.', 'fuxt-api' ),
+				'type'        => 'string',
+				'items'       => array(
+					'type' => 'string',
+					'enum' => array(
+						'acf',
+						'terms',
+						'siblings',
+						'children',
+						'parent',
+						'ancestors',
+						'next',
+						'prev',
+					),
+				),
 			),
 		);
 	}
