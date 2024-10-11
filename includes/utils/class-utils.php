@@ -149,4 +149,32 @@ class Utils {
 
 		return $post_types;
 	}
+
+	/**
+	 * Parse query string. Handles param=1&param=2
+	 * @param string $str
+	 *
+	 * @return string
+	 */
+	public static function cgi_parse_str( $str ) {
+		$arr = array();
+
+		$pairs = explode( '&', $str );
+
+		foreach ( $pairs as $i ) {
+			list($name,$value) = explode( '=', $i, 2 );
+
+			if ( isset( $arr[ $name ] ) ) {
+				if ( is_array( $arr[ $name ] ) ) {
+					$arr[ $name ][] = $value;
+				} else {
+					$arr[ $name ] = array( $arr[ $name ], $value );
+				}
+			} else {
+				$arr[ $name ] = $value;
+			}
+		}
+
+		return $arr;
+	}
 }
