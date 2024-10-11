@@ -8,6 +8,7 @@
 namespace FuxtApi;
 
 use FuxtApi\Utils\Post as PostUtils;
+use FuxtApi\Utils\Utils;
 
 /**
  * Class REST_Post_Controller
@@ -25,6 +26,8 @@ class REST_Post_Controller {
 	 */
 	public function init() {
 		add_action( 'rest_api_init', array( $this, 'register_endpoint' ) );
+
+		add_action( 'parse_request', array( $this, 'handle_get_params' ), 9 );
 	}
 
 	/**
@@ -66,10 +69,11 @@ class REST_Post_Controller {
 			'uri'      => array(
 				'description' => __( 'Post slug to get post object by.', 'fuxt-api' ),
 				'type'        => 'string',
+				'required'    => true,
 			),
 			'fields'   => array(
 				'description' => __( 'Additional fields to return. Comma separated string of fields.', 'fuxt-api' ),
-				'type'        => 'string',
+				'type'        => array( 'string', 'array' ),
 				'items'       => array(
 					'type' => 'string',
 					'enum' => array(
@@ -482,5 +486,15 @@ class REST_Post_Controller {
 		}
 
 		return false;
+	}
+
+	// Handle field=1&field=2 case in PHP
+	public function handle_get_params() {
+		if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+			return;
+		}
+
+		$params = Utils::cgi_parse_str( $_SERVER['QUERY_STRING'] );
+		$_GET   = array_merge( $_GET, $params );
 	}
 }
