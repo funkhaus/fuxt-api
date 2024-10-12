@@ -162,8 +162,10 @@ class Utils {
 		$pairs = explode( '&', $str );
 
 		foreach ( $pairs as $i ) {
-			list($name,$value) = explode( '=', $i, 2 );
+			list( $name, $value ) = explode( '=', $i, 2 );
 
+			$name  = str_replace( array( '[', ']' ), '', $name );
+			$value = urldecode( $value );
 			if ( isset( $arr[ $name ] ) ) {
 				if ( is_array( $arr[ $name ] ) ) {
 					$arr[ $name ][] = $value;
