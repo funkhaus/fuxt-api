@@ -105,6 +105,10 @@ class Post {
 						$child_additional_fields[] = 'children';
 					}
 
+					if ( in_array( 'acf', $additional_fields ) ) {
+						$child_additional_fields[] = 'acf';
+					}
+
 					$depth -= 1;
 
 					foreach ( $children as $child ) {
