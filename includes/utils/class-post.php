@@ -69,8 +69,22 @@ class Post {
 				}
 			}
 
+			// Inherit additional fields for siblings, parent, children, next, prev post.
+			$inherit_fields = array_intersect(
+				$additional_fields,
+				array(
+					'acf',
+					'terms',
+				)
+			);
+
 			if ( in_array( 'siblings', $additional_fields ) ) {
-				$data['siblings'] = array_map( array( self::class, 'get_postdata' ), self::get_sibling_posts( $post ) );
+				$data['siblings'] = array();
+				$sibling_posts    = self::get_sibling_posts( $post );
+
+				foreach ( $sibling_posts as $sibling_post ) {
+					$data['siblings'][] = self::get_postdata( $sibling_post, $inherit_fields );
+				}
 			}
 
 			if ( in_array( 'children', $additional_fields ) ) {
@@ -100,13 +114,11 @@ class Post {
 				if ( $children ) {
 					$depth = isset( $params['depth'] ) ? (int) $params['depth'] : 1;
 
-					$child_additional_fields = array();
+					// inherit some of the additional fields.
+					$child_additional_fields = $inherit_fields;
+
 					if ( $depth > 1 ) {
 						$child_additional_fields[] = 'children';
-					}
-
-					if ( in_array( 'acf', $additional_fields ) ) {
-						$child_additional_fields[] = 'acf';
 					}
 
 					$depth -= 1;
@@ -132,21 +144,26 @@ class Post {
 
 			if ( in_array( 'parent', $additional_fields ) ) {
 				$parent         = get_post_parent( $post );
-				$data['parent'] = $parent ? self::get_postdata( $parent ) : null;
+				$data['parent'] = $parent ? self::get_postdata( $parent, $inherit_fields ) : null;
 			}
 
 			if ( in_array( 'ancestors', $additional_fields ) ) {
-				$data['ancestors'] = array_map( array( self::class, 'get_postdata' ), get_post_ancestors( $post ) );
+				$data['ancestors'] = array();
+				$ancestor_posts    = get_post_ancestors( $post );
+
+				foreach ( $ancestor_posts as $ancestor_post ) {
+					$data['ancestors'][] = self::get_postdata( $ancestor_post, $inherit_fields );
+				}
 			}
 
 			if ( in_array( 'next', $additional_fields ) ) {
 				$next_post    = self::get_next_prev_post( $post, true, true );
-				$data['next'] = $next_post ? self::get_postdata( $next_post ) : null;
+				$data['next'] = $next_post ? self::get_postdata( $next_post, $inherit_fields ) : null;
 			}
 
 			if ( in_array( 'prev', $additional_fields ) ) {
 				$prev_post    = self::get_next_prev_post( $post, false, true );
-				$data['prev'] = $prev_post ? self::get_postdata( $prev_post ) : null;
+				$data['prev'] = $prev_post ? self::get_postdata( $prev_post, $inherit_fields ) : null;
 			}
 		}
 
