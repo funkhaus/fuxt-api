@@ -100,13 +100,17 @@ class Post {
 				if ( $children ) {
 					$depth = isset( $params['depth'] ) ? (int) $params['depth'] : 1;
 
-					$child_additional_fields = array();
+					// inherit some of the additional fields.
+					$child_additional_fields = array_intersect(
+						$additional_fields,
+						array(
+							'acf',
+							'terms',
+						)
+					);
+
 					if ( $depth > 1 ) {
 						$child_additional_fields[] = 'children';
-					}
-
-					if ( in_array( 'acf', $additional_fields ) ) {
-						$child_additional_fields[] = 'acf';
 					}
 
 					$depth -= 1;
