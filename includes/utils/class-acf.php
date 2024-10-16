@@ -47,77 +47,92 @@ class Acf {
 		if ( ! empty( $fields ) ) {
 			foreach ( $fields as $key => $field ) {
 				$value = null;
-				switch ( $field['type'] ) {
-					case 'image':
-						if ( 'array' === $field['return_format'] ) {
-							$id = $field['value']['id'];
-						} elseif ( 'id' === $field['return_format'] ) {
-							$id = $field['value'];
-						} elseif ( 'url' === $field['return_format'] ) {
-							$id = attachment_url_to_postid( $field['value'] );
-						}
 
-						if ( $id ) {
-							$value = Utils::get_mediadata( $id );
-						}
-
-						break;
-
-					case 'post_object':
-						$value = PostUtils::get_postdata( $field['value'] );
-
-						break;
-
-					case 'relationship':
-						$value = array_map( array( PostUtils::class, 'get_postdata' ), $field['value'] );
-
-						break;
-
-					case 'taxonomy':
-						$value = array_map( array( Utils::class, 'get_termdata' ), $field['value'] );
-
-						break;
-
-					case 'page_link':
-						if ( $field['multiple'] ) {
-							$ids   = array_map( array( PostUtils::class, 'get_post_by_uri' ), $field['value'] );
-							$value = array_map( array( PostUtils::class, 'get_postdata' ), $ids );
-						} else {
-							$value = PostUtils::get_postdata( PostUtils::get_post_by_uri( $field['value'] ) );
-						}
-
-						break;
-
-					case 'group':
-						$sub_fields = $field['sub_fields'];
-						$sub_fields = array_combine( array_column( $sub_fields, 'name' ), array_values( $sub_fields ) );
-						foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
-							$sub_field['value'] = $field['value'][ $sub_field_name ] ?? null;
-						}
-
-						$value = self::get_data_by_fields( $sub_fields );
-
-						break;
-
-					case 'repeater':
-						$sub_fields = $field['sub_fields'];
-						$sub_fields = array_combine( array_column( $sub_fields, 'name' ), array_values( $sub_fields ) );
-
-						$value = array();
-						if ( $field['value'] ) {
-							foreach ( $field['value'] as $row ) {
-								foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
-									$sub_field['value'] = $row[ $sub_field_name ] ?? null;
-								}
-								$value[] = self::get_data_by_fields( $sub_fields );
+				if ( $field['value'] !== null ) :
+					switch ( $field['type'] ) {
+						case 'image':
+							if ( 'array' === $field['return_format'] ) {
+								$id = $field['value']['id'];
+							} elseif ( 'id' === $field['return_format'] ) {
+								$id = $field['value'];
+							} elseif ( 'url' === $field['return_format'] ) {
+								$id = attachment_url_to_postid( $field['value'] );
 							}
-						}
 
-						break;
-					default:
-						$value = $field['value'];
-						break;
-				}
+							if ( $id ) {
+								$value = Utils::get_mediadata( $id );
+							}
+
+							break;
+
+						case 'post_object':
+							$value = PostUtils::get_postdata( $field['value'] );
+
+							break;
+
+						case 'relationship':
+							if ( is_array( $field['value'] ) ) {
+								$value = array_map( array( PostUtils::class, 'get_postdata' ), $field['value'] );
+							} else {
+								$value = null;
+							}
+
+							break;
+
+						case 'taxonomy':
+							if ( is_array( $field['value'] ) ) {
+								$value = array_map( array( Utils::class, 'get_termdata' ), $field['value'] );
+							} else {
+								$value = null;
+							}
+
+							break;
+
+						case 'page_link':
+							if ( $field['multiple'] ) {
+								if ( is_array( $field['value'] ) ) {
+									$ids   = array_map( array( PostUtils::class, 'get_post_by_uri' ), $field['value'] );
+									$value = array_map( array( PostUtils::class, 'get_postdata' ), $ids );
+								} else {
+									$value = null;
+								}
+							} else {
+								$value = PostUtils::get_postdata( PostUtils::get_post_by_uri( $field['value'] ) );
+							}
+
+							break;
+
+						case 'group':
+							$sub_fields = $field['sub_fields'];
+							$sub_fields = array_combine( array_column( $sub_fields, 'name' ), array_values( $sub_fields ) );
+							foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
+								$sub_field['value'] = $field['value'][ $sub_field_name ] ?? null;
+							}
+
+							$value = self::get_data_by_fields( $sub_fields );
+
+							break;
+
+						case 'repeater':
+							$sub_fields = $field['sub_fields'];
+							$sub_fields = array_combine( array_column( $sub_fields, 'name' ), array_values( $sub_fields ) );
+
+							$value = array();
+							if ( $field['value'] ) {
+								foreach ( $field['value'] as $row ) {
+									foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
+										$sub_field['value'] = $row[ $sub_field_name ] ?? null;
+									}
+									$value[] = self::get_data_by_fields( $sub_fields );
+								}
+							}
+
+							break;
+						default:
+							$value = $field['value'];
+							break;
+					}
+				endif;
 
 				$data[ $key ] = $value;
 			}
