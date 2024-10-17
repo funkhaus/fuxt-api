@@ -121,6 +121,10 @@ class REST_Post_Controller {
 					'description' => __( 'The content for the post.' ),
 					'type'        => 'string',
 				),
+				'blocks'         => array(
+					'description' => __( 'The block JSON array.' ),
+					'type'        => 'array',
+				),
 				'date'           => array(
 					'description' => __( "The date the post was published, in the site's timezone." ),
 					'type'        => array( 'string', 'null' ),
