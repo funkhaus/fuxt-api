@@ -100,6 +100,10 @@ class Utils {
 			}
 
 			$media_data['meta'] = $image_meta;
+		} else {
+			$media_data['srcset'] = $src . ' ' . $width . 'w';
+			$media_data['sizes']  = $width . 'px';
+			$media_data['meta']   = null;
 		}
 
 		// Add acf meta data.
