@@ -293,11 +293,11 @@ class Post {
 			}
 		}
 
-		if ( isset( $params['term_uri'] ) ) {
+		if ( isset( $params['term_slug'] ) ) {
 			$terms = get_terms(
 				array(
 					'taxonomy' => get_taxonomies(),
-					'slug'     => $params['term_uri'],
+					'slug'     => $params['term_slug'],
 				)
 			);
 

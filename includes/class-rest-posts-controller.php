@@ -268,7 +268,7 @@ class REST_Posts_Controller {
 				'description' => __( 'Parent post slug', 'fuxt-api' ),
 				'type'        => 'string',
 			),
-			'term_uri'        => array(
+			'term_slug'        => array(
 				'description' => __( 'Terms slug', 'fuxt-api' ),
 				'type'        => 'string',
 			),
