@@ -128,6 +128,20 @@ class Acf {
 							}
 
 							break;
+						case 'gallery':
+							if ( 'array' === $field['return_format'] ) {
+								$ids = array_column( $field['value'], 'id' );
+							} elseif ( 'id' === $field['return_format'] ) {
+								$ids = $field['value'];
+							} elseif ( 'url' === $field['return_format'] ) {
+								$ids = array_map( 'attachment_url_to_postid', $field['value'] );
+							}
+
+							if ( $ids ) {
+								$value = array_map( array( Utils::class, 'get_mediadata' ), $ids );
+							}
+
+							break;
 						default:
 							$value = $field['value'];
 							break;
