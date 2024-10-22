@@ -43,7 +43,7 @@ class Post {
 			'guid'           => $post->guid,
 			'title'          => get_the_title( $post ),
 			'content'        => apply_filters( 'the_content', $post->post_content ),
-			'blocks'         => parse_blocks( $post->post_content ),
+			'blocks'         => Block::get_block_data( $post ),
 			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
 			'slug'           => $post->post_name,
 			'url'            => $url,
