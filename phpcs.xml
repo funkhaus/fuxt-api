@@ -14,4 +14,6 @@
         <exclude name="Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure"/>
         <exclude name="PSR2.ControlStructures.SwitchDeclaration.TerminatingComment"/>
     </rule>
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/includes/libs/*</exclude-pattern>
 </ruleset>
