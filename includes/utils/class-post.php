@@ -293,6 +293,33 @@ class Post {
 			}
 		}
 
+		if ( isset( $params['term_slug'] ) ) {
+			$terms = get_terms(
+				array(
+					'taxonomy' => get_taxonomies(),
+					'slug'     => $params['term_slug'],
+				)
+			);
+
+			if ( ! empty( $terms ) ) {
+				$query_params['tax_query'] = array(
+					array(
+						'taxonomy' => $terms[0]->taxonomy,
+						'field'    => 'slug',
+						'terms'    => $terms[0]->slug,
+					),
+				);
+
+				// Default order is menu_order for hierarchical post types such as page.
+				if ( is_post_type_hierarchical( $parent_post->post_type ) ) {
+					$query_params['orderby'] = 'menu_order';
+					$query_params['order']   = 'ASC';
+				}
+			} else {
+				return null;
+			}
+		}
+
 		if ( isset( $params['post_type'] ) ) {
 			$query_params['post_type'] = $params['post_type'];
 		} else {

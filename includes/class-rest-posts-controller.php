@@ -268,6 +268,10 @@ class REST_Posts_Controller {
 				'description' => __( 'Parent post slug', 'fuxt-api' ),
 				'type'        => 'string',
 			),
+			'term_slug'        => array(
+				'description' => __( 'Terms slug', 'fuxt-api' ),
+				'type'        => 'string',
+			),
 			'orderby'         => array(
 				'description' => __( 'orderby', 'fuxt-api' ),
 				'type'        => 'string',
@@ -338,10 +342,10 @@ class REST_Posts_Controller {
 		$posts             = PostUtils::get_posts( $request, $additional_fields );
 
 		if ( empty( $posts ) ) {
-			return new \WP_Error(
-				'rest_post_invalid_request',
-				__( 'Invalid request params.', 'fuxt-api' ),
-				array( 'status' => 404 )
+			$posts = array(
+				'list'        => array(),
+				'total'       => 0,
+				'total_pages' => 0,
 			);
 		}
 
