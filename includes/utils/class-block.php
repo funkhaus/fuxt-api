@@ -44,7 +44,7 @@ class Block {
 			return new \WP_Error( $parser_result->get_error_code(), $parser_result->get_error_message(), $wp_error_data );
 		}
 
-		return $parser_result;
+		return $parser_result['blocks'];
 		// return $blocks;
 	}
 

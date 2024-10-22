@@ -44,7 +44,7 @@ class REST_Post_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
-				'schema' => array( $this, 'get_item_schema' ),
+				'schema' => array( self::class, 'get_item_schema' ),
 			)
 		);
 	}
@@ -107,7 +107,7 @@ class REST_Post_Controller {
 		);
 	}
 
-	public function get_item_schema() {
+	public static function get_item_schema() {
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'fuxt_post',
@@ -124,6 +124,36 @@ class REST_Post_Controller {
 				'blocks'         => array(
 					'description' => __( 'The block JSON array.' ),
 					'type'        => 'array',
+					'items'       => array(
+						'type'       => 'object',
+						'title'      => 'block',
+						'properties' => array(
+							'name'        => array(
+								'type'        => 'string',
+								'description' => __( 'Block name' ),
+							),
+							'attributes'  => array(
+								'type'        => 'object',
+								'description' => __( 'Block attributes' ),
+							),
+							'innerBlocks' => array(
+								'type'        => 'array',
+								'description' => __( 'Block inner blocks array' ),
+								'items'       => array(
+									'type' => 'object',
+									'name' => 'block',
+								),
+							),
+							'html'        => array(
+								'type'        => 'string',
+								'description' => __( 'Block HTML' ),
+							),
+							'innerHtml'   => array(
+								'type'        => 'string',
+								'description' => __( 'Block inner HTML' ),
+							),
+						),
+					),
 				),
 				'date'           => array(
 					'description' => __( "The date the post was published, in the site's timezone." ),
