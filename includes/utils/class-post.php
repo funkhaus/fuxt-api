@@ -310,6 +310,9 @@ class Post {
 					),
 				);
 
+				$taxonomy                  = get_taxonomy( $terms[0]->taxonomy );
+				$query_params['post_type'] = $taxonomy->object_type;
+
 				// Default order is menu_order for hierarchical post types such as page.
 				if ( is_post_type_hierarchical( $parent_post->post_type ) ) {
 					$query_params['orderby'] = 'menu_order';
@@ -320,10 +323,12 @@ class Post {
 			}
 		}
 
-		if ( isset( $params['post_type'] ) ) {
-			$query_params['post_type'] = $params['post_type'];
-		} else {
-			$query_params['post_type'] = 'any';
+		if ( ! isset( $query_params['post_type'] ) ) {
+			if ( isset( $params['post_type'] ) ) {
+				$query_params['post_type'] = $params['post_type'];
+			} else {
+				$query_params['post_type'] = 'post';
+			}
 		}
 
 		if ( isset( $params['per_page'] ) ) {
