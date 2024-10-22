@@ -45,7 +45,6 @@ class Block {
 		}
 
 		return $parser_result['blocks'];
-		// return $blocks;
 	}
 
 	public static function get_block_parser() {
