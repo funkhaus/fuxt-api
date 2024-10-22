@@ -166,10 +166,11 @@ class Utils {
 		$pairs = explode( '&', $str );
 
 		foreach ( $pairs as $i ) {
-			list( $name, $value ) = explode( '=', $i, 2 );
+			$parts = explode( '=', $i, 2 );
 
-			$name  = str_replace( array( '[', ']' ), '', $name );
-			$value = urldecode( $value );
+			$name  = str_replace( array( '[', ']' ), '', $parts[0] );
+			$value = isset( $parts[1] ) ? urldecode( $parts[1] ) : '';
+
 			if ( isset( $arr[ $name ] ) ) {
 				if ( is_array( $arr[ $name ] ) ) {
 					$arr[ $name ][] = $value;
