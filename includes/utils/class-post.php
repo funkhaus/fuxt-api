@@ -43,7 +43,7 @@ class Post {
 			'guid'           => $post->guid,
 			'title'          => get_the_title( $post ),
 			'content'        => apply_filters( 'the_content', $post->post_content ),
-			'blocks'         => parse_blocks( $post->post_content ),
+			'blocks'         => Utils::filter_blocks( $post->post_content ),
 			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
 			'slug'           => $post->post_name,
 			'url'            => $url,
@@ -53,7 +53,7 @@ class Post {
 			'modified'       => Utils::prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 			'type'           => $post->post_type,
 			'author_id'      => (int) $post->post_author,
-			'featured_media' => Utils::get_mediadata( get_post_thumbnail_id( $post->ID ) ) ?? null,
+			'featured_media' => Utils::get_mediadata( get_post_thumbnail_id( $post->ID ) ) ?? null
 		);
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {

@@ -8,6 +8,7 @@
 namespace FuxtApi\Utils;
 
 use \FuxtApi\Utils\Acf as AcfUtils;
+use DOMDocument as DOMDocument;
 
 /**
  * Class Utils
@@ -184,4 +185,65 @@ class Utils {
 
 		return $arr;
 	}
+	
+	public static function filter_blocks( $blocks_content ) {
+        $parsed_blocks = parse_blocks($blocks_content);
+
+    	return self::extend_blocks($parsed_blocks);
+	}
+	
+	public static function extend_blocks($blocks) {
+    	$output = $blocks;
+    	
+    	// Loop each block, add data to it as needed
+        foreach($output as $key => $block) {
+            // Extend a single block
+            $block = self::extend_block($block);
+            
+            // Recursively extend any innerBlocks also
+            if( !empty($block['innerBlocks']) ) {
+                $block['innerBlocks'] = self::extend_blocks($block['innerBlocks']);
+            }
+            
+            $output[$key] = $block;
+        }
+
+    	return $output;
+	}
+	
+	public static function extend_block($block) {
+    	switch( $block['blockName'] ) {
+        	case "core/image":
+        	    // Add `embed`
+        	    $block['embed'] = Utils::get_mediadata( $block['attrs']['id'] );
+                break;
+    	}
+
+
+        $block['innerHtml'] = self::get_inner_html($block['innerHTML']);
+    	
+    	return apply_filters('fuxt_extend_block', $block);
+	}
+	
+    public static function get_inner_html( $html ) {
+        $dom = new DOMDocument();
+
+        libxml_use_internal_errors( true );
+        $dom->loadHTML( sprintf( 'body%s/body', trim( $html ) ), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+        libxml_clear_errors();
+
+        $body_node   = $dom->getElementsByTagName( 'body' )->item( 0 );
+        $first_child = $body_node ? $body_node->firstChild : $dom->documentElement->firstChild; // phpcs:ignore
+
+        $inner_html = '';
+        if ( $first_child ) {
+            foreach ( $first_child->childNodes as $child ) { // phpcs:ignore
+                $inner_html .= $dom->saveHTML( $child );
+            }
+        }
+
+        return $inner_html;
+    }	
+	
 }
+
