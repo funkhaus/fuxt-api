@@ -293,7 +293,7 @@ class Post {
 			}
 		}
 
-		if ( isset( $params['term_slug'] ) ) {
+		if ( ! empty( $params['term_slug'] ) ) {
 			$terms = get_terms(
 				array(
 					'taxonomy' => get_taxonomies(),
@@ -325,6 +325,9 @@ class Post {
 
 		if ( ! isset( $query_params['post_type'] ) ) {
 			if ( isset( $params['post_type'] ) ) {
+				if ( ! in_array( $params['post_type'], Utils::get_post_types() ) ) {
+					return null;
+				}
 				$query_params['post_type'] = $params['post_type'];
 			} else {
 				$query_params['post_type'] = 'post';
@@ -332,11 +335,11 @@ class Post {
 		}
 
 		if ( isset( $params['per_page'] ) ) {
-			$query_params['posts_per_page'] = $params['per_page'];
+			$query_params['posts_per_page'] = (int) $params['per_page'];
 		}
 
 		if ( isset( $params['page'] ) ) {
-			$query_params['paged'] = $params['page'];
+			$query_params['paged'] = (int) $params['page'];
 		}
 
 		if ( isset( $params['orderby'] ) ) {
