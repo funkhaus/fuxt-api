@@ -261,9 +261,14 @@ class Post {
 			return get_post( $front_page_id );
 		}
 
-		$post = get_page_by_path( $uri, OBJECT, Utils::get_post_types() );
+		$post_id = url_to_postid( home_url( $uri ) );
 
-		return $post;
+		if ( ! empty( $post_id ) ) {
+			return get_post( $post_id );
+		}
+
+		// $post = get_page_by_path( $uri, OBJECT, Utils::get_post_types() );
+		return null;
 	}
 
 	/**
