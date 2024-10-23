@@ -267,7 +267,6 @@ class Post {
 			return get_post( $post_id );
 		}
 
-		// $post = get_page_by_path( $uri, OBJECT, Utils::get_post_types() );
 		return null;
 	}
 
