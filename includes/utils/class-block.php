@@ -44,13 +44,13 @@ class Block {
 	 */
 	private static function extend_block( $block, $post ) {
 		$extended_block = array(
-			'blockName' => $block['blockName'],
-			'attrs'     => self::get_attributes( $block, $post->ID ),
-			'innerHtml' => self::get_inner_html( render_block( $block ) ),
+			'block_name' => $block['blockName'],
+			'attrs'      => self::get_attributes( $block, $post->ID ),
+			'inner_html' => self::get_inner_html( render_block( $block ) ),
 		);
 
 		// Recursively extend any innerBlocks also.
-		if ( ! empty( $block['innerBlocks'] ) ) {
+		if ( ! empty( $block['inner_blocks'] ) ) {
 			$extended_block['innerBlocks'] = array_map( array( self::class, 'extend_block' ), $block['innerBlocks'] );
 		}
 
@@ -93,7 +93,7 @@ class Block {
 		);
 
 		// Make tag name field mandatory.
-		$block_definition_attributes['tagName'] = array(
+		$block_definition_attributes['tag_name'] = array(
 			'type'   => 'string',
 			'source' => 'tag',
 		);
@@ -160,7 +160,7 @@ class Block {
 		// Sort attributes by key to ensure consistent output.
 		ksort( $block_attributes );
 
-		return $block_attributes;
+		return array_combine( array_map( array( Utils::class, 'decamelize' ), array_keys( $block_attributes ) ), array_values( $block_attributes ) );
 	}
 
 	/**
