@@ -7,6 +7,7 @@
 
 namespace FuxtApi\Utils;
 
+use FuxtApi\Utils\Block as BlockUtils;
 use FuxtApi\Utils\Utils as Utils;
 use FuxtApi\Utils\Acf as AcfUtils;
 
@@ -43,7 +44,7 @@ class Post {
 			'guid'           => $post->guid,
 			'title'          => get_the_title( $post ),
 			'content'        => apply_filters( 'the_content', $post->post_content ),
-			'blocks'         => Utils::filter_blocks( $post->post_content ),
+			'blocks'         => BlockUtils::filter_blocks( $post ),
 			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
 			'slug'           => $post->post_name,
 			'url'            => $url,
