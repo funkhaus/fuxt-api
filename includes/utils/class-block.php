@@ -26,7 +26,9 @@ class Block {
 		$extended_blocks = array();
 
 		foreach ( $parsed_blocks as $parsed_block ) {
-			$extended_blocks[] = self::extend_block( $parsed_block, $post );
+			if ( $parsed_block['blockName'] ) {
+				$extended_blocks[] = self::extend_block( $parsed_block, $post );
+			}
 		}
 		return $extended_blocks;
 	}
@@ -83,10 +85,21 @@ class Block {
 		$block_definition_attributes = $block_definition->attributes ?? [];
 		$block_attributes            = $block['attrs'];
 
+		// Make id field mandatory.
+		$block_definition_attributes['id'] = array(
+			'type'      => 'string',
+			'source'    => 'attribute',
+			'attribute' => 'id',
+		);
+
+		// Make tag name field mandatory.
+		$block_definition_attributes['tagName'] = array(
+			'type'   => 'string',
+			'source' => 'tag',
+		);
+
 		$dom_xpath   = null;
 		$dom_element = null;
-
-		error_log2( $block_definition_attributes );
 
 		foreach ( $block_definition_attributes as $block_attribute_name => $block_attribute_definition ) {
 			$attribute_source        = $block_attribute_definition['source'] ?? null;
@@ -102,7 +115,7 @@ class Block {
 			}
 
 			// Init $dom_xpath and $dom_element.
-			if ( null === $dom_xpath ) {
+			if ( null === $dom_element ) {
 				$dom_document = self::get_dom_document( $block['innerHTML'] );
 				$body_node    = $dom_document->getElementsByTagName( 'body' )->item( 0 );
 				$dom_element  = $body_node ? $body_node->firstChild : $dom_document->documentElement->firstChild;
@@ -143,6 +156,9 @@ class Block {
 
 			$block_attributes[ $block_attribute_name ] = $attribute_value;
 		}
+
+		// Sort attributes by key to ensure consistent output.
+		ksort( $block_attributes );
 
 		return $block_attributes;
 	}
