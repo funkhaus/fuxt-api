@@ -44,7 +44,7 @@ class REST_Post_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
-				'schema' => array( $this, 'get_item_schema' ),
+				'schema' => array( self::class, 'get_item_schema' ),
 			)
 		);
 	}
@@ -107,7 +107,7 @@ class REST_Post_Controller {
 		);
 	}
 
-	public function get_item_schema() {
+	public static function get_item_schema() {
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'fuxt_post',
