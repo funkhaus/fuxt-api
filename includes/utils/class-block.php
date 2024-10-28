@@ -51,7 +51,11 @@ class Block {
 
 		// Recursively extend any innerBlocks also.
 		if ( ! empty( $block['innerBlocks'] ) ) {
-			$extended_block['innerBlocks'] = array_map( array( self::class, 'extend_block' ), $block['innerBlocks'] );
+			$extended_inner_blocks = array();
+			foreach ( $block['innerBlocks'] as $inner_block ) {
+				$extended_inner_blocks[] = self::extend_block( $inner_block, $post );
+			}
+			$extended_block['innerBlocks'] = $extended_inner_blocks;
 		}
 
 		// Specific block handling.
