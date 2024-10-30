@@ -82,6 +82,8 @@ class Utils {
 			'caption'     => $image_obj->post_excerpt,
 			'title'       => $image_obj->post_title,
 			'description' => apply_filters( 'the_content', $image_obj->post_content ),
+			'mime_type'   => get_post_mime_type( $media_id ),
+			'html'        => wp_get_attachment_image( $media_id, 'full' ),
 		);
 
 		// Add meta data.
