@@ -141,7 +141,13 @@ class Block {
 			// Get attribute value from DOM.
 			$attribute_value = null;
 			if ( 'attribute' === $attribute_source || 'property' === $attribute_source ) {
-				$attribute_value = $seleted_dom->getAttribute( $block_attribute_definition['attribute'] );
+				if ( $block_attribute_definition['type'] === 'boolean' ) {
+					$attribute_value = $seleted_dom->hasAttribute( $block_attribute_definition['attribute'] ) ? 1 : 0;
+				} else {
+					if ( $seleted_dom->hasAttribute( $block_attribute_definition['attribute'] ) ) {
+						$attribute_value = $seleted_dom->getAttribute( $block_attribute_definition['attribute'] );
+					}
+				}
 			} elseif ( 'rich-text' === $attribute_source || 'html' === $attribute_source ) {
 				if ( $seleted_dom->firstChild ) {
 					$attribute_value = $seleted_dom->ownerDocument->saveHTML( $seleted_dom->firstChild );
