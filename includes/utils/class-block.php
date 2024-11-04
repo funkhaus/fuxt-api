@@ -129,7 +129,9 @@ class Block {
 			// If selector is defined set the element as dom element.
 			$seleted_dom = $dom_element;
 			if ( ! empty( $block_attribute_definition['selector'] ) ) {
-				$child_nodes = $dom_xpath->query( $block_attribute_definition['selector'], $dom_element->parentNode );
+				$xpath_selector = self::css_selector_to_xpath( $block_attribute_definition['selector'] );
+
+				$child_nodes = $dom_xpath->query( $xpath_selector, $dom_element->parentNode );
 
 				if ( ! empty( $child_nodes ) && ! empty( $child_nodes[0] ) ) {
 					$seleted_dom = $child_nodes[0];
@@ -139,9 +141,17 @@ class Block {
 			// Get attribute value from DOM.
 			$attribute_value = null;
 			if ( 'attribute' === $attribute_source || 'property' === $attribute_source ) {
-				$attribute_value = $seleted_dom->getAttribute( $block_attribute_definition['attribute'] );
+				if ( $block_attribute_definition['type'] === 'boolean' ) {
+					$attribute_value = $seleted_dom->hasAttribute( $block_attribute_definition['attribute'] ) ? 1 : 0;
+				} else {
+					if ( $seleted_dom->hasAttribute( $block_attribute_definition['attribute'] ) ) {
+						$attribute_value = $seleted_dom->getAttribute( $block_attribute_definition['attribute'] );
+					}
+				}
 			} elseif ( 'rich-text' === $attribute_source || 'html' === $attribute_source ) {
-				$attribute_value = $seleted_dom->ownerDocument->saveHTML( $seleted_dom );
+				if ( $seleted_dom->firstChild ) {
+					$attribute_value = $seleted_dom->ownerDocument->saveHTML( $seleted_dom->firstChild );
+				}
 			} elseif ( 'text' === $attribute_source ) {
 				$attribute_value = $seleted_dom->textContent;
 			} elseif ( 'tag' === $attribute_source ) {
@@ -165,6 +175,22 @@ class Block {
 		ksort( $block_attributes );
 
 		return array_combine( array_map( array( Utils::class, 'decamelize' ), array_keys( $block_attributes ) ), array_values( $block_attributes ) );
+	}
+
+	/**
+	 * Create xpath string from css selector.
+	 *
+	 * @param string $css_selector
+	 *
+	 * @return string
+	 */
+	private static function css_selector_to_xpath( $css_selector ) {
+		$css_selector = str_replace( ' > ', '/', $css_selector );
+		$css_selector = preg_replace( '/(\w+) \+ (\w+)/', '${1}/following-sibling::${2}[1]', $css_selector );
+		$css_selector = preg_replace( '/(\w+) \~ (\w+)/', '${1}/following-sibling::${2}', $css_selector );
+		$css_selector = str_replace( ' ', '//', $css_selector );
+
+		return '//' . $css_selector;
 	}
 
 	/**
