@@ -83,6 +83,16 @@ class Post {
 				$data['siblings'] = array();
 				$sibling_posts    = self::get_sibling_posts( $post );
 
+				// filter current post.
+				$sibling_posts = array_values(
+					array_filter(
+						$sibling_posts,
+						function( $sibling ) use ( $post ) {
+							return $sibling->ID !== $post->ID;
+						}
+					)
+				);
+
 				foreach ( $sibling_posts as $sibling_post ) {
 					$data['siblings'][] = self::get_postdata( $sibling_post, $inherit_fields );
 				}
@@ -234,16 +244,7 @@ class Post {
 		);
 
 		// Get all siblings
-		$siblings = get_posts( $args );
-
-		return array_values(
-			array_filter(
-				$siblings,
-				function( $sibling ) use ( $post ) {
-					return $sibling->ID !== $post->ID;
-				}
-			)
-		);
+		return get_posts( $args );
 	}
 
 	/**
