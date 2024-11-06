@@ -133,9 +133,13 @@ class Block {
 
 				$child_nodes = $dom_xpath->query( $xpath_selector, $dom_element->parentNode );
 
-				if ( ! empty( $child_nodes ) && ! empty( $child_nodes[0] ) ) {
-					$seleted_dom = $child_nodes[0];
+				// Child node doesn't exist. set null.
+				if ( empty( $child_nodes ) || empty( $child_nodes[0] ) ) {
+					$block_attributes[ $block_attribute_name ] = null;
+					continue;
 				}
+
+				$seleted_dom = $child_nodes[0];
 			}
 
 			// Get attribute value from DOM.
