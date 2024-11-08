@@ -254,7 +254,7 @@ class Post {
 	 *
 	 * @return \WP_Post|null
 	 */
-	public static function get_post_by_uri( $uri ) {
+	public static function get_post_by_uri( $uri, $params = array() ) {
 		$uri = Utils::get_relative_url( $uri );
 
 		// homepage check.
@@ -267,6 +267,20 @@ class Post {
 
 		if ( ! empty( $post_id ) ) {
 			return get_post( $post_id );
+		} else {
+			// Draft preview handler.
+			if (
+				isset( $params['preview'] )
+				&& isset( $params['slug'] )
+				&& isset( $params['id'] )
+				&& isset( $params['status'] )
+				&& $params['status'] === 'draft'
+			) {
+				$draft_post = get_post( $params['id'] );
+				if ( $draft_post && $draft_post->post_status === 'draft' && $draft_post->post_name === $params['slug'] ) {
+					return $draft_post;
+				}
+			}
 		}
 
 		return null;

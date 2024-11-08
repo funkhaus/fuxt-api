@@ -71,6 +71,10 @@ class REST_Post_Controller {
 				'type'        => 'string',
 				'required'    => true,
 			),
+			'params'   => array(
+				'description' => __( 'Additional query params.', 'fuxt-api' ),
+				'type'        => array( 'array', 'string' ),
+			),
 			'fields'   => array(
 				'description' => __( 'Additional fields to return. Comma separated string of fields.', 'fuxt-api' ),
 				'type'        => array( 'string', 'array' ),
@@ -315,7 +319,9 @@ class REST_Post_Controller {
 	 * @return \WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$post = PostUtils::get_post_by_uri( $request['uri'] ?? '' );
+		$params = isset( $_GET['params'] ) ? wp_parse_list( json_decode( $_GET['params'], true ) ) : array();
+
+		$post = PostUtils::get_post_by_uri( $request['uri'] ?? '', $params );
 
 		if ( empty( $post ) ) {
 			return new \WP_Error(
@@ -325,7 +331,7 @@ class REST_Post_Controller {
 			);
 		}
 
-		if ( ! $this->check_read_permission( $post ) ) {
+		if ( ! $this->check_read_permission( $post, $params ) ) {
 			return new \WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to access this page.', 'fuxt-api' ),
@@ -436,10 +442,11 @@ class REST_Post_Controller {
 	 *
 	 * Correctly handles posts with the inherit status.
 	 *
-	 * @param WP_Post $post Post object.
+	 * @param WP_Post $post   Post object.
+	 * @param array   $params Query parameters.
 	 * @return bool Whether the post can be read.
 	 */
-	public function check_read_permission( $post ) {
+	public function check_read_permission( $post, $params = array() ) {
 		$post_type = get_post_type_object( $post->post_type );
 		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
 			return false;
@@ -459,7 +466,7 @@ class REST_Post_Controller {
 		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
 			if ( $parent ) {
-				return $this->check_read_permission( $parent );
+				return $this->check_read_permission( $parent, $params );
 			}
 		}
 
@@ -468,6 +475,10 @@ class REST_Post_Controller {
 		 * it's published (as per get_post_status()).
 		 */
 		if ( 'inherit' === $post->post_status ) {
+			return true;
+		}
+
+		if ( isset( $params['status'] ) && $params['status'] === $post->post_status ) {
 			return true;
 		}
 
