@@ -263,13 +263,39 @@ class Post {
 			return get_post( $front_page_id );
 		}
 
-		$post_id = url_to_postid( home_url( $uri ) );
+		$post_id = self::url_to_postid( $uri );
 
 		if ( ! empty( $post_id ) ) {
 			return get_post( $post_id );
 		}
 
 		return null;
+	}
+
+	/**
+	 * Check if a user can read post.
+	 *
+	 * @param int $user_id User ID.
+	 * @param int $post_id Post ID.
+	 *
+	 * @return boolean
+	 */
+	public static function can_user_read_post( $user_id, $post_id ) {
+		// Get the post object
+		$post = get_post( $post_id );
+
+		if ( empty( $post ) ) {
+			return false;
+		}
+
+		// Check if the post exists and is a draft
+		if ( $post->post_status === 'draft' ) {
+			// Check if the user is the author of the post or have permission.
+			return $post->post_author === $user_id || user_can( $user_id, 'read_private_posts' );
+		}
+
+		// Post is not a draft or doesn't exist
+		return $post->post_status === 'publish';
 	}
 
 	/**
@@ -377,4 +403,119 @@ class Post {
 			'list'        => $post_list,
 		);
 	}
+
+	/**
+	 * Examines a URL and try to determine the post ID it represents.
+	 *
+	 * Checks are supposedly from the hosted site blog.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 * @global WP         $wp         Current WordPress environment instance.
+	 *
+	 * @param string $url Permalink to check.
+	 * @return int Post ID, or 0 on failure.
+	 */
+	public static function url_to_postid( $url ) {
+		global $wp_rewrite;
+
+		// First, check to see if there is a 'p=N' or 'page_id=N' to match against.
+		if ( preg_match( '#[?&](p|page_id|attachment_id)=(\d+)#', $url, $values ) ) {
+			$id = absint( $values[2] );
+			if ( $id ) {
+				return $id;
+			}
+		}
+
+		// Get rid of the #anchor.
+		$url_split = explode( '#', $url );
+		$url       = $url_split[0];
+
+		// Get rid of URL ?query=string.
+		$url_split = explode( '?', $url );
+		$url       = $url_split[0];
+
+		// Trim leading and lagging slashes.
+		$url = trim( $url, '/' );
+
+		$post_type_query_vars = array();
+
+		foreach ( get_post_types( array(), 'objects' ) as $post_type => $t ) {
+			if ( ! empty( $t->query_var ) ) {
+				$post_type_query_vars[ $t->query_var ] = $post_type;
+			}
+		}
+
+		// Check to see if we are using rewrite rules.
+		$rewrite = $wp_rewrite->wp_rewrite_rules();
+
+		// Not using rewrite rules, and 'p=N' and 'page_id=N' methods failed, so we're out of options.
+		if ( empty( $rewrite ) ) {
+			return 0;
+		}
+
+		// Look for matches.
+		$request_match = $url;
+		foreach ( (array) $rewrite as $match => $query ) {
+
+			if ( preg_match( "#^$match#", $request_match, $matches ) ) {
+
+				if ( $wp_rewrite->use_verbose_page_rules && preg_match( '/pagename=\$matches\[([0-9]+)\]/', $query, $varmatch ) ) {
+					// This is a verbose page match, let's check to be sure about it.
+					$page = get_page_by_path( $matches[ $varmatch[1] ] );
+					if ( ! $page ) {
+						continue;
+					}
+
+					$post_status_obj = get_post_status_object( $page->post_status );
+					if ( $page->post_status !== 'draft' && ! $post_status_obj->public && ! $post_status_obj->protected
+						&& ! $post_status_obj->private && $post_status_obj->exclude_from_search ) {
+						continue;
+					}
+				}
+
+				/*
+				* Got a match.
+				* Trim the query of everything up to the '?'.
+				*/
+				$query = preg_replace( '!^.+\?!', '', $query );
+
+				// Substitute the substring matches into the query.
+				$query = addslashes( \WP_MatchesMapRegex::apply( $query, $matches ) );
+
+				// Filter out non-public query vars.
+				global $wp;
+				parse_str( $query, $query_vars );
+				$query = array();
+				foreach ( (array) $query_vars as $key => $value ) {
+					if ( in_array( (string) $key, $wp->public_query_vars, true ) ) {
+						$query[ $key ] = $value;
+						if ( isset( $post_type_query_vars[ $key ] ) ) {
+							$query['post_type'] = $post_type_query_vars[ $key ];
+							$query['name']      = $value;
+						}
+					}
+				}
+
+				// Resolve conflicts between posts with numeric slugs and date archive queries.
+				$query = wp_resolve_numeric_slug_conflicts( $query );
+
+				$query['post_status'] = array(
+					'publish',
+					'draft',
+				);
+
+				// Do the query.
+				$query = new \WP_Query( $query );
+				if ( ! empty( $query->posts ) && $query->is_singular ) {
+					return $query->post->ID;
+				} else {
+					return 0;
+				}
+			}
+		}
+		return 0;
+	}
+
 }
