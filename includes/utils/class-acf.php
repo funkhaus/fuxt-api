@@ -52,7 +52,7 @@ class Acf {
 					switch ( $field['type'] ) {
 						case 'image':
 							if ( 'array' === $field['return_format'] ) {
-								$id = $field['value']['id'];
+								$id = $field['value']['id'] ?? null;
 							} elseif ( 'id' === $field['return_format'] ) {
 								$id = $field['value'];
 							} elseif ( 'url' === $field['return_format'] ) {
