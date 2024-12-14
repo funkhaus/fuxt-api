@@ -126,6 +126,10 @@ class Block {
 				$dom_xpath    = new \DOMXPath( $dom_document );
 			}
 
+			if ( null === $dom_element ) {
+				continue;
+			}
+
 			// If selector is defined set the element as dom element.
 			$seleted_dom = $dom_element;
 			if ( ! empty( $block_attribute_definition['selector'] ) ) {
