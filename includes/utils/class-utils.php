@@ -116,6 +116,45 @@ class Utils {
 		return $image_data;
 	}
 
+	/**
+	 * Get video data by id.
+	 *
+	 * @param int $video_id
+	 *
+	 * @return array|null
+	 */
+	public static function get_videodata( $video_id ) {
+		if ( empty( $video_id ) ) {
+			return null;
+		}
+
+		$video_post = get_post( $video_id );
+		if ( ! $video_post ) {
+			return null;
+		}
+
+		$video_data = array(
+			'id'          => $video_id,
+			'src'         => wp_get_attachment_url( $video_id ),
+			'title'       => $video_post->post_title,
+			'description' => $video_post->post_excerpt,
+		);
+
+		$metadata = wp_get_attachment_metadata( $video_id );
+		if ( ! empty( $metadata ) && is_array( $metadata ) ) {
+			$video_data['width']  = $metadata['width'];
+			$video_data['height'] = $metadata['height'];
+			$video_data['length'] = $metadata['length'];
+		}
+
+		// Add acf meta data.
+		if ( function_exists( 'get_fields' ) ) {
+			$video_data['acf'] = AcfUtils::get_data_by_id( $video_id );
+		}
+
+		return $video_data;
+	}
+
 	public static function get_termdata( $term_taxonomy ) {
 		if ( empty( $term_taxonomy ) ) {
 			return null;
