@@ -58,6 +58,24 @@ class Block {
 			$extended_block['inner_blocks'] = $extended_inner_blocks;
 		}
 
+		if ( strpos( $block['blockName'], 'acf/' ) === 0) {
+			$prepared_block       = \acf_prepare_block( $block['attrs'] );
+			$prepared_block['id'] = \acf_get_block_id( $prepared_block );
+			\acf_setup_meta( $prepared_block['data'], $prepared_block['id'], true );
+			$fields = \acf_get_block_fields( $prepared_block );
+
+			$assoc_fields = array();
+
+			foreach ( $fields as $field ) {
+				if ( $field['value'] === null ) {
+					$field['value'] = \acf_get_value( $prepared_block['id'], $field );
+				}
+				$assoc_fields[ $field['name'] ] = $field;
+			}
+
+			$extended_block['acf'] = Acf::get_data_by_fields( $assoc_fields );
+		}
+
 		// Specific block handling.
 		switch ( $block['blockName'] ) {
 			case 'core/image':
