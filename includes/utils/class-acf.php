@@ -138,7 +138,30 @@ class Acf {
 								}
 
 								if ( $ids && is_array( $ids ) ) {
-									$value = array_map( array( Utils::class, 'get_imagedata' ), $ids );
+									$value = array();
+									foreach ( $ids as $media_id ) {
+										$media_data = array(
+											'id' => $media_id,
+										);
+
+										$mime_type = get_post_mime_type( $media_id );
+										if ( $mime_type ) {
+											// Check if it's an image
+											if ( strpos( $mime_type, 'image/' ) === 0 ) {
+												$media_data         = Utils::get_imagedata( $media_id );
+												$media_data['type'] = 'image';
+											} elseif ( strpos( $mime_type, 'video/' ) === 0 ) {
+												$media_data         = Utils::get_videodata( $media_id );
+												$media_data['type'] = 'video';
+											} else {
+												$media_data = array_merge( $media_data, wp_get_attachment_metadata( $media_id ) );
+											}
+
+											$media_data['mime_type'] = $media_data;
+										}
+
+										$value[] = $media_data;
+									}
 								}
 							}
 
