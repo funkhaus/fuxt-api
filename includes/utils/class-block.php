@@ -62,7 +62,7 @@ class Block {
 		switch ( $block['blockName'] ) {
 			case 'core/image':
 				// Add `embed`
-				$extended_block['embed'] = Utils::get_mediadata( $block['attrs']['id'] );
+				$extended_block['embed'] = Utils::get_imagedata( $block['attrs']['id'] );
 				break;
 		}
 

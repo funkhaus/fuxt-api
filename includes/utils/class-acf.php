@@ -60,7 +60,7 @@ class Acf {
 							}
 
 							if ( $id ) {
-								$value = Utils::get_mediadata( $id );
+								$value = Utils::get_imagedata( $id );
 							}
 
 							break;
@@ -138,7 +138,7 @@ class Acf {
 								}
 
 								if ( $ids && is_array( $ids ) ) {
-									$value = array_map( array( Utils::class, 'get_mediadata' ), $ids );
+									$value = array_map( array( Utils::class, 'get_imagedata' ), $ids );
 								}
 							}
 

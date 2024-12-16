@@ -54,7 +54,7 @@ class Post {
 			'modified'       => Utils::prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 			'type'           => $post->post_type,
 			'author_id'      => (int) $post->post_author,
-			'featured_media' => Utils::get_mediadata( get_post_thumbnail_id( $post->ID ) ) ?? null,
+			'featured_media' => Utils::get_imagedata( get_post_thumbnail_id( $post->ID ) ) ?? null,
 		);
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
