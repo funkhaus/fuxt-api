@@ -111,6 +111,10 @@ class REST_Menu_Controller {
 						'description' => __( '(For type "custom" only) Menu uri. Relative path to home url.' ),
 						'type'        => 'string',
 					),
+					'to'          => array(
+						'description' => __( 'Identical with uri. For nuxt convention.' ),
+						'type'        => 'string',
+					),
 					'children'    => array(
 						'description' => __( 'Children items list.', 'fuxt-api' ),
 						'type'        => array( 'array', 'null' ),
@@ -228,6 +232,7 @@ class REST_Menu_Controller {
 
 		if ( 'custom' !== $menu_item->type ) {
 			$menu_data['uri'] = Utils::get_relative_url( $menu_item->url );
+			$menu_data['to']  = $menu_data['uri'];
 		}
 
 		$menu_data['children'] = array();

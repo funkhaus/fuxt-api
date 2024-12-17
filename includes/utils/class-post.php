@@ -38,6 +38,7 @@ class Post {
 		}
 
 		$url = get_permalink( $post );
+		$to  = Utils::get_relative_url( $url );
 
 		$data = array(
 			'id'             => $post->ID,
@@ -48,7 +49,8 @@ class Post {
 			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
 			'slug'           => $post->post_name,
 			'url'            => $url,
-			'uri'            => Utils::get_relative_url( $url ),
+			'uri'            => $to,
+			'to'             => $to,
 			'status'         => $post->post_status,
 			'date'           => Utils::prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			'modified'       => Utils::prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
