@@ -223,6 +223,11 @@ class REST_Post_Controller {
 					'type'        => 'string',
 					'format'      => 'string',
 				),
+				'to'             => array(
+					'description' => __( 'Relative URL to the post. Identical with uri. For nuxt convention.' ),
+					'type'        => 'string',
+					'format'      => 'string',
+				),
 				'url'            => array(
 					'description' => __( 'Absolute URL to the post.' ),
 					'type'        => 'string',
@@ -261,6 +266,11 @@ class REST_Post_Controller {
 									),
 									'uri'    => array(
 										'description' => __( 'Term Uri' ),
+										'type'        => 'string',
+										'format'      => 'uri',
+									),
+									'to'     => array(
+										'description' => __( 'Identical with Uri. For nuxt convention.' ),
 										'type'        => 'string',
 										'format'      => 'uri',
 									),
