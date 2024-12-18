@@ -241,7 +241,7 @@ class Post {
 		// Yes this isn't effienct to query all pages,
 		// but actually it works well for thousands of pages in practice.
 		$args = array(
-			'post_type'      => get_post_type( $post ),
+			'post_type'      => $post_type,
 			'posts_per_page' => -1,
 			'orderby'        => $orderby,
 			'order'          => 'ASC',
