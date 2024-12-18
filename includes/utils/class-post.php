@@ -234,13 +234,16 @@ class Post {
 	 * @return \WP_Post[]
 	 */
 	public static function get_sibling_posts( $post ) {
+		$post_type = get_post_type( $post );
+
+		$orderby = $post_type === 'post' ? 'date' : 'menu_order';
 		// Get all siblings pages
-		// Yes this is isn't effienct to query all pages,
+		// Yes this isn't effienct to query all pages,
 		// but actually it works well for thousands of pages in practice.
 		$args = array(
-			'post_type'      => get_post_type( $post ),
+			'post_type'      => $post_type,
 			'posts_per_page' => -1,
-			'orderby'        => 'menu_order',
+			'orderby'        => $orderby,
 			'order'          => 'ASC',
 			'post_parent'    => $post->post_parent,
 		);
