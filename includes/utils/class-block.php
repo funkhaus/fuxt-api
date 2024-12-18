@@ -193,6 +193,7 @@ class Block {
 		$css_selector = preg_replace( '/(\w+) \+ (\w+)/', '${1}/following-sibling::${2}[1]', $css_selector );
 		$css_selector = preg_replace( '/(\w+) \~ (\w+)/', '${1}/following-sibling::${2}', $css_selector );
 		$css_selector = str_replace( ' ', '//', $css_selector );
+		$css_selector = str_replace( ',', ' | //', $css_selector );
 
 		return '//' . $css_selector;
 	}
