@@ -208,7 +208,7 @@ class Block {
 		$dom = new \DOMDocument();
 
 		libxml_use_internal_errors( true );
-		$dom->loadHTML( sprintf( '<body>%s</body>', trim( $html ) ), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+		$dom->loadHTML( sprintf( '<meta http-equiv="Content-Type" content="charset=utf-8"/><body>%s</body>', trim( $html ) ), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 		libxml_clear_errors();
 
 		return $dom;
@@ -222,11 +222,7 @@ class Block {
 	 * @return string
 	 */
 	private static function get_inner_html( $html ) {
-		$dom = new \DOMDocument();
-
-		libxml_use_internal_errors( true );
-		$dom->loadHTML( sprintf( '<body>%s</body>', trim( $html ) ), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
-		libxml_clear_errors();
+		$dom = self::get_dom_document( $html );
 
 		$body_node   = $dom->getElementsByTagName( 'body' )->item( 0 );
 		$first_child = $body_node ? $body_node->firstChild : $dom->documentElement->firstChild;
