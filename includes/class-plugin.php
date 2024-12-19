@@ -23,6 +23,7 @@ class Plugin extends Plugin_Base {
 		( new REST_Menu_Controller() )->init();
 		( new REST_Acf_Controller() )->init();
 		( new REST_Posts_Controller() )->init();
+		( new REST_User_Controller() )->init();
 
 		$this->update_check();
 	}
