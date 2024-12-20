@@ -89,7 +89,7 @@ class REST_Posts_Controller {
 			'orderby'         => array(
 				'description' => __( 'orderby', 'fuxt-api' ),
 				'type'        => 'string',
-				'default'     => 'date',
+				'default'     => 'menu_order',
 				'enum'        => array(
 					'author',
 					'date',
@@ -101,6 +101,7 @@ class REST_Posts_Controller {
 					'slug',
 					'include_slugs',
 					'title',
+					'menu_order',
 				),
 			),
 			'order'           => array(
