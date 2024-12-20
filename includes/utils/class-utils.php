@@ -50,19 +50,19 @@ class Utils {
 	}
 
 	/**
-	 * Get media data by id.
+	 * Get image data by id.
 	 *
-	 * @param int $media_id
+	 * @param int $image_id
 	 *
 	 * @return array|null
 	 */
-	public static function get_mediadata( $media_id ) {
-		if ( empty( $media_id ) ) {
+	public static function get_imagedata( $image_id ) {
+		if ( empty( $image_id ) ) {
 			return null;
 		}
 
 		$size  = 'full'; // can be thumbnail|medium|full|array(w,h)
-		$image = wp_get_attachment_image_src( $media_id, $size );
+		$image = wp_get_attachment_image_src( $image_id, $size );
 		if ( ! $image ) {
 			return null;
 		}
@@ -71,51 +71,88 @@ class Utils {
 		$width  = $image[1];
 		$height = $image[2];
 
-		$image_obj = get_post( $media_id );
+		$image_obj = get_post( $image_id );
 
-		$media_data = array(
-			'id'          => $media_id,
+		$image_data = array(
+			'id'          => $image_id,
 			'src'         => $src,
 			'width'       => $width,
 			'height'      => $height,
-			'alt'         => trim( strip_tags( get_post_meta( $media_id, '_wp_attachment_image_alt', true ) ) ),
+			'alt'         => trim( strip_tags( get_post_meta( $image_id, '_wp_attachment_image_alt', true ) ) ),
 			'caption'     => $image_obj->post_excerpt,
 			'title'       => $image_obj->post_title,
 			'description' => apply_filters( 'the_content', $image_obj->post_content ),
-			'mime_type'   => get_post_mime_type( $media_id ),
-			'html'        => wp_get_attachment_image( $media_id, 'full' ),
+			'mime_type'   => get_post_mime_type( $image_id ),
+			'html'        => wp_get_attachment_image( $image_id, 'full' ),
 		);
 
 		// Add meta data.
-		$image_meta = wp_get_attachment_metadata( $media_id );
+		$image_meta = wp_get_attachment_metadata( $image_id );
 		if ( is_array( $image_meta ) ) {
 			$size_array = array( absint( $width ), absint( $height ) );
-			$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $media_id );
-			$sizes      = wp_calculate_image_sizes( $size_array, $src, $image_meta, $media_id );
+			$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $image_id );
+			$sizes      = wp_calculate_image_sizes( $size_array, $src, $image_meta, $image_id );
 
 			if ( $srcset && $sizes ) {
-				$media_data['srcset'] = $srcset;
-				$media_data['sizes']  = $sizes;
+				$image_data['srcset'] = $srcset;
+				$image_data['sizes']  = $sizes;
 			} else {
-				$media_data['srcset'] = $src . ' ' . $width . 'w';
-				$media_data['sizes']  = $width . 'px';
+				$image_data['srcset'] = $src . ' ' . $width . 'w';
+				$image_data['sizes']  = $width . 'px';
 			}
 
-			$media_data['meta'] = $image_meta;
+			$image_data['meta'] = $image_meta;
 		} else {
-			$media_data['srcset'] = $src . ' ' . $width . 'w';
-			$media_data['sizes']  = $width . 'px';
-			$media_data['meta']   = null;
+			$image_data['srcset'] = $src . ' ' . $width . 'w';
+			$image_data['sizes']  = $width . 'px';
+			$image_data['meta']   = null;
 		}
 
 		// Add acf meta data.
 		if ( function_exists( 'get_fields' ) ) {
-			$media_data['acf'] = AcfUtils::get_data_by_id( $media_id );
+			$image_data['acf'] = AcfUtils::get_data_by_id( $image_id );
 		}
 
-		// We can add more media meta fields here.
+		return $image_data;
+	}
 
-		return $media_data;
+	/**
+	 * Get video data by id.
+	 *
+	 * @param int $video_id
+	 *
+	 * @return array|null
+	 */
+	public static function get_videodata( $video_id ) {
+		if ( empty( $video_id ) ) {
+			return null;
+		}
+
+		$video_post = get_post( $video_id );
+		if ( ! $video_post ) {
+			return null;
+		}
+
+		$video_data = array(
+			'id'          => $video_id,
+			'src'         => wp_get_attachment_url( $video_id ),
+			'title'       => $video_post->post_title,
+			'description' => $video_post->post_excerpt,
+		);
+
+		$metadata = wp_get_attachment_metadata( $video_id );
+		if ( ! empty( $metadata ) && is_array( $metadata ) ) {
+			$video_data['width']  = $metadata['width'];
+			$video_data['height'] = $metadata['height'];
+			$video_data['length'] = $metadata['length'];
+		}
+
+		// Add acf meta data.
+		if ( function_exists( 'get_fields' ) ) {
+			$video_data['acf'] = AcfUtils::get_data_by_id( $video_id );
+		}
+
+		return $video_data;
 	}
 
 	public static function get_termdata( $term_taxonomy ) {
