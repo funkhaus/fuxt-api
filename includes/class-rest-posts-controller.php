@@ -101,6 +101,7 @@ class REST_Posts_Controller {
 					'slug',
 					'include_slugs',
 					'title',
+					'menu_order',
 				),
 			),
 			'order'           => array(

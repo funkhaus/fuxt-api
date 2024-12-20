@@ -236,7 +236,7 @@ class Post {
 	public static function get_sibling_posts( $post ) {
 		$post_type = get_post_type( $post );
 
-		$orderby = $post_type === 'post' ? 'date' : 'menu_order';
+		$orderby = is_post_type_hierarchical( $post_type ) ? 'menu_order' : 'date';
 		// Get all siblings pages
 		// Yes this isn't effienct to query all pages,
 		// but actually it works well for thousands of pages in practice.
