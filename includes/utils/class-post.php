@@ -144,7 +144,7 @@ class Post {
 							$child,
 							$child_additional_fields,
 							array(
-								'per_page' => 1,
+								'per_page' => $params['per_page'],
 								'depth'    => $depth,
 							)
 						);
