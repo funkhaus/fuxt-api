@@ -345,6 +345,10 @@ class REST_Post_Controller {
 
 		$additional_fields = $this->get_additional_fields_for_response( $request );
 
+		if ( use_block_editor_for_post_type( $post->post_type ) ) {
+			$additional_fields[] = 'blocks';
+		}
+
 		// Prepare params.
 		$params = array();
 

@@ -45,7 +45,6 @@ class Post {
 			'guid'           => $post->guid,
 			'title'          => get_the_title( $post ),
 			'content'        => apply_filters( 'the_content', $post->post_content ),
-			'blocks'         => BlockUtils::filter_blocks( $post ),
 			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
 			'slug'           => $post->post_name,
 			'url'            => $url,
@@ -60,6 +59,10 @@ class Post {
 		);
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
+			if ( in_array( 'blocks', $additional_fields ) ) {
+				$data['blocks'] = BlockUtils::filter_blocks( $post );
+			}
+
 			if ( in_array( 'acf', $additional_fields ) ) {
 				$data['acf'] = AcfUtils::get_data_by_id( $post->ID );
 			}
