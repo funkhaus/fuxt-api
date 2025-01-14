@@ -118,7 +118,7 @@ class Acf {
 								if ( $field['value'] ) {
 									foreach ( $field['value'] as $row ) {
 										foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
-											$sub_field['value'] = $row[ $sub_field_name ] ?? $row[ $sub_field['key'] ] ?? null;
+											$sub_field['value'] = $row[ $sub_field_name ] ?? null;
 										}
 										$value[] = self::get_data_by_fields( $sub_fields );
 									}
