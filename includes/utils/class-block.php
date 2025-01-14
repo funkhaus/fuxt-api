@@ -59,21 +59,24 @@ class Block {
 		}
 
 		if ( strpos( $block['blockName'], 'acf/' ) === 0) {
-			$prepared_block       = \acf_prepare_block( $block['attrs'] );
-			$prepared_block['id'] = \acf_get_block_id( $prepared_block );
+			$attributes       = $block['attrs'];
+
+			// Generate block id.
+			$attributes['id'] = \acf_get_block_id( $attributes );
+
+			// Prepare block by attributes.
+			$prepared_block   = \acf_prepare_block( $attributes );
+
+			// Ensure block ID is prefixed for render.
+			$prepared_block['id'] = \acf_ensure_block_id_prefix( $prepared_block['id'] );
+
+			// Setup postdata
 			\acf_setup_meta( $prepared_block['data'], $prepared_block['id'], true );
-			$fields = \acf_get_block_fields( $prepared_block );
 
-			$assoc_fields = array();
+			// Get fields objects
+			$fields = \get_field_objects( $prepared_block['id'] );
 
-			foreach ( $fields as $field ) {
-				if ( $field['value'] === null ) {
-					$field['value'] = \acf_get_value( $prepared_block['id'], $field );
-				}
-				$assoc_fields[ $field['name'] ] = $field;
-			}
-
-			$extended_block['acf'] = Acf::get_data_by_fields( $assoc_fields );
+			$extended_block['acf'] = Acf::get_data_by_fields( $fields );
 		}
 
 		// Specific block handling.
