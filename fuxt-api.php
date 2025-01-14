@@ -6,7 +6,7 @@
  * Author: funkhaus, drewbaker, rsm0128
  * Author URI: https://github.com/funkhaus
  * Text Domain: fuxt-api
- * Version: 0.1.2
+ * Version: 0.1.3
  * Year: 2024
  */
 

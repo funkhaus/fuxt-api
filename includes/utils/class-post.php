@@ -38,17 +38,18 @@ class Post {
 		}
 
 		$url = get_permalink( $post );
+		$to  = Utils::get_relative_url( $url );
 
 		$data = array(
 			'id'             => $post->ID,
 			'guid'           => $post->guid,
 			'title'          => get_the_title( $post ),
 			'content'        => apply_filters( 'the_content', $post->post_content ),
-			'blocks'         => BlockUtils::filter_blocks( $post ),
 			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
 			'slug'           => $post->post_name,
 			'url'            => $url,
-			'uri'            => Utils::get_relative_url( $url ),
+			'uri'            => $to,
+			'to'             => $to,
 			'status'         => $post->post_status,
 			'date'           => Utils::prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			'modified'       => Utils::prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
@@ -58,6 +59,10 @@ class Post {
 		);
 
 		if ( ! empty( $additional_fields ) && is_array( $additional_fields ) ) {
+			if ( in_array( 'blocks', $additional_fields ) ) {
+				$data['blocks'] = BlockUtils::filter_blocks( $post );
+			}
+
 			if ( in_array( 'acf', $additional_fields ) ) {
 				$data['acf'] = AcfUtils::get_data_by_id( $post->ID );
 			}
@@ -139,7 +144,7 @@ class Post {
 							$child,
 							$child_additional_fields,
 							array(
-								'per_page' => 1,
+								'per_page' => $params['per_page'],
 								'depth'    => $depth,
 							)
 						);
@@ -232,13 +237,16 @@ class Post {
 	 * @return \WP_Post[]
 	 */
 	public static function get_sibling_posts( $post ) {
+		$post_type = get_post_type( $post );
+
+		$orderby = is_post_type_hierarchical( $post_type ) ? 'menu_order' : 'date';
 		// Get all siblings pages
-		// Yes this is isn't effienct to query all pages,
+		// Yes this isn't effienct to query all pages,
 		// but actually it works well for thousands of pages in practice.
 		$args = array(
-			'post_type'      => get_post_type( $post ),
+			'post_type'      => $post_type,
 			'posts_per_page' => -1,
-			'orderby'        => 'menu_order',
+			'orderby'        => $orderby,
 			'order'          => 'ASC',
 			'post_parent'    => $post->post_parent,
 		);

@@ -168,12 +168,15 @@ class Utils {
 			}
 		}
 
+		$to = self::get_relative_url( get_term_link( $term_taxonomy ) );
+
 		return array(
 			'id'     => $term_taxonomy->term_id,
 			'name'   => $term_taxonomy->name,
 			'slug'   => $term_taxonomy->slug,
 			'parent' => $term_taxonomy->parent ? self::get_termdata( $term_taxonomy->parent ) : null,
-			'uri'    => self::get_relative_url( get_term_link( $term_taxonomy ) ),
+			'uri'    => $to,
+			'to'     => $to,
 		);
 	}
 
