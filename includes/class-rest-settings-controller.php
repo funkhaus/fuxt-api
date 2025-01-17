@@ -115,7 +115,7 @@ class REST_Settings_Controller {
 			'title'                => get_option( 'blogname' ),
 			'description'          => get_option( 'blogdescription' ),
 			'backend_url'          => get_option( 'siteurl' ),
-			'frontend_url'         => get_option( 'home' ),
+			'frontend_url'         => home_url(),
 			'theme_screenshot_url' => wp_get_theme()->get_screenshot(),
 		);
 
