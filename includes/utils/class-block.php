@@ -178,8 +178,9 @@ class Block {
 					}
 				}
 			} elseif ( 'rich-text' === $attribute_source || 'html' === $attribute_source ) {
-				if ( $seleted_dom->firstChild ) {
-					$attribute_value = $seleted_dom->ownerDocument->saveHTML( $seleted_dom->firstChild );
+				$attribute_value = '';
+				foreach ($seleted_dom->childNodes as $child) {
+					$attribute_value .= $seleted_dom->ownerDocument->saveHTML($child);
 				}
 			} elseif ( 'text' === $attribute_source ) {
 				$attribute_value = $seleted_dom->textContent;
