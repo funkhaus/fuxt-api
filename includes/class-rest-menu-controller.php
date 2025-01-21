@@ -218,6 +218,7 @@ class REST_Menu_Controller {
 		$menu_data = array(
 			'id'          => $menu_item->ID,
 			'title'       => $menu_item->title,
+			'label'       => $menu_item->label,
 			'slug'        => $menu_item->post_name,
 			'menu_order'  => $menu_item->menu_order,
 			'url'         => $menu_item->url,
