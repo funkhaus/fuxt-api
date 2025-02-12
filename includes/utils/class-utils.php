@@ -7,7 +7,7 @@
 
 namespace FuxtApi\Utils;
 
-use \FuxtApi\Utils\Acf as AcfUtils;
+use FuxtApi\Utils\Acf as AcfUtils;
 
 /**
  * Class Utils
@@ -86,6 +86,12 @@ class Utils {
 			'html'        => wp_get_attachment_image( $image_id, 'full' ),
 		);
 
+		// Check if svg.
+		$svg = self::encode_svg( $image_id );
+		if ( $svg ) {
+			$image_data['encoded_content'] = $svg;
+		}
+
 		// Add meta data.
 		$image_meta = wp_get_attachment_metadata( $image_id );
 		if ( is_array( $image_meta ) ) {
@@ -114,6 +120,25 @@ class Utils {
 		}
 
 		return $image_data;
+	}
+
+	/**
+	 * Encode SVG file by id.
+	 *
+	 * @param int $image_id Attachement id.
+	 * @return string|false
+	 */
+	private static function encode_svg( $image_id ) {
+		$file_path = get_attached_file( $image_id );
+		$file_type = wp_check_filetype( $file_path );
+		if ( $file_type['ext'] === 'svg' ) {
+			$svg_content = file_get_contents( $file_path );
+			if ( $svg_content ) {
+				return base64_encode( $svg_content );
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -230,12 +255,11 @@ class Utils {
 	/**
 	 * Convert camelCase to snake_case.
 	 *
-	 * @param string $string.
+	 * @param string $str.
 	 *
 	 * @return string
 	 */
-	public static function decamelize( $string ) {
-		return strtolower( preg_replace( [ '/([a-z\d])([A-Z])/', '/([^_])([A-Z][a-z])/' ], '$1_$2', $string ) );
+	public static function decamelize( $str ) {
+		return strtolower( preg_replace( array( '/([a-z\d])([A-Z])/', '/([^_])([A-Z][a-z])/' ), '$1_$2', $str ) );
 	}
 }
-
