@@ -104,19 +104,19 @@ abstract class Plugin_Base {
 	 *
 	 * @codeCoverageIgnore
 	 *
-	 * @param string $class Class name.
+	 * @param string $class_full_name Class name.
 	 *
 	 * @return void
 	 */
-	public function autoload( $class ) {
-		if ( ! isset( $this->autoload_matches_cache[ $class ] ) ) {
-			if ( ! preg_match( '/^(?P<namespace>.+)\\\\(?P<class>[^\\\\]+)$/', $class, $matches ) ) {
+	public function autoload( $class_full_name ) {
+		if ( ! isset( $this->autoload_matches_cache[ $class_full_name ] ) ) {
+			if ( ! preg_match( '/^(?P<namespace>.+)\\\\(?P<class>[^\\\\]+)$/', $class_full_name, $matches ) ) {
 				$matches = false;
 			}
 
-			$this->autoload_matches_cache[ $class ] = $matches;
+			$this->autoload_matches_cache[ $class_full_name ] = $matches;
 		} else {
-			$matches = $this->autoload_matches_cache[ $class ];
+			$matches = $this->autoload_matches_cache[ $class_full_name ];
 		}
 
 		if ( empty( $matches ) ) {

@@ -187,7 +187,7 @@ class REST_Menu_Controller {
 		foreach ( $sorted_menu_items as $menu_item ) {
 			$parent_id = $menu_item['parent_id'];
 
-			if ( $parent_id == 0 ) {
+			if ( $parent_id === 0 ) {
 				continue;
 			}
 
