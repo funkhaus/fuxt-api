@@ -7,7 +7,7 @@
 
 namespace FuxtApi;
 
-use \FuxtApi\Utils\Utils;
+use FuxtApi\Utils\Utils;
 
 /**
  * Class REST_Settings_Controller

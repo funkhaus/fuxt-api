@@ -60,7 +60,7 @@ abstract class Plugin_Base {
 	 *
 	 * @var array
 	 */
-	protected $autoload_matches_cache = [];
+	protected $autoload_matches_cache = array();
 
 	/**
 	 * Plugin_Base constructor.
@@ -73,7 +73,7 @@ abstract class Plugin_Base {
 		$this->slug     = basename( $this->dir_path );
 		$this->dir_url  = content_url( str_replace( wp_normalize_path( WP_CONTENT_DIR ), '', wp_normalize_path( $this->dir_path ) ) );
 
-		spl_autoload_register( [ $this, 'autoload' ] );
+		spl_autoload_register( array( $this, 'autoload' ) );
 	}
 
 	/**
@@ -156,11 +156,11 @@ abstract class Plugin_Base {
 	 * @throws Exception If the plugin is not located in the expected location.
 	 */
 	public function locate_plugin() {
-		return [
+		return array(
 			'dir_url'      => $this->dir_url,
 			'dir_path'     => $this->dir_path,
 			'dir_basename' => $this->slug,
-		];
+		);
 	}
 
 	/**

@@ -7,7 +7,7 @@
 
 namespace FuxtApi\Utils;
 
-use \FuxtApi\Utils\Acf as AcfUtils;
+use FuxtApi\Utils\Acf as AcfUtils;
 
 /**
  * Class Utils
@@ -230,12 +230,11 @@ class Utils {
 	/**
 	 * Convert camelCase to snake_case.
 	 *
-	 * @param string $string.
+	 * @param string $str.
 	 *
 	 * @return string
 	 */
-	public static function decamelize( $string ) {
-		return strtolower( preg_replace( [ '/([a-z\d])([A-Z])/', '/([^_])([A-Z][a-z])/' ], '$1_$2', $string ) );
+	public static function decamelize( $str ) {
+		return strtolower( preg_replace( array( '/([a-z\d])([A-Z])/', '/([^_])([A-Z][a-z])/' ), '$1_$2', $str ) );
 	}
 }
-

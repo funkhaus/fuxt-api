@@ -8,7 +8,7 @@
 namespace FuxtApi;
 
 use FuxtApi\Utils\Post as PostUtils;
-use FuxtApi\Utils\Utils as Utils;
+use FuxtApi\Utils\Utils;
 
 /**
  * Class REST_Posts_Controller

@@ -7,7 +7,7 @@
 
 namespace FuxtApi;
 
-use \FuxtApi\Utils\Acf as AcfUtils;
+use FuxtApi\Utils\Acf as AcfUtils;
 
 /**
  * Class REST_Acf_Controller
@@ -102,5 +102,4 @@ class REST_Acf_Controller {
 
 		return rest_ensure_response( $option );
 	}
-
 }

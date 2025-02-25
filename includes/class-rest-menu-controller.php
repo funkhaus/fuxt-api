@@ -7,7 +7,7 @@
 
 namespace FuxtApi;
 
-use \FuxtApi\Utils\Utils;
+use FuxtApi\Utils\Utils;
 
 /**
  * Class REST_Menu_Controller
@@ -240,5 +240,4 @@ class REST_Menu_Controller {
 
 		return $menu_data;
 	}
-
 }
