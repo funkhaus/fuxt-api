@@ -153,6 +153,7 @@ class REST_Menu_Controller {
 			'name' => array(
 				'description' => __( 'Menu name', 'fuxt-api' ),
 				'type'        => 'string',
+				'required'    => true,
 			),
 		);
 	}
