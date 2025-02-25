@@ -63,10 +63,6 @@ class Post {
 				$data['blocks'] = BlockUtils::filter_blocks( $post );
 			}
 
-			if ( in_array( 'acf', $additional_fields ) ) {
-				$data['acf'] = AcfUtils::get_data_by_id( $post->ID );
-			}
-
 			if ( in_array( 'terms', $additional_fields ) ) {
 				$taxonomies = get_object_taxonomies( $post->post_type, 'names' );
 				foreach ( $taxonomies as $taxonomy ) {
@@ -83,6 +79,11 @@ class Post {
 					'terms',
 				)
 			);
+
+			if ( in_array( 'acf', $additional_fields ) ) {
+				$acf_utils   = new AcfUtils( $inherit_fields );
+				$data['acf'] = $acf_utils->get_data_by_id( $post->ID );
+			}
 
 			if ( in_array( 'siblings', $additional_fields ) ) {
 				$data['siblings'] = array();

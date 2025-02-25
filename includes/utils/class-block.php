@@ -76,7 +76,7 @@ class Block {
 			// Get fields objects
 			$fields = \get_field_objects( $prepared_block['id'] );
 
-			$extended_block['acf'] = Acf::get_data_by_fields( $fields );
+			$extended_block['acf'] = ( new Acf() )->get_data_by_fields( $fields );
 		}
 
 		// Specific block handling.

@@ -90,7 +90,7 @@ class REST_Acf_Controller {
 	 * @return \WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$option = AcfUtils::get_option_by_name( $request['name'] );
+		$option = ( new AcfUtils() )->get_option_by_name( $request['name'] );
 
 		if ( is_null( $option ) ) {
 			return new \WP_Error(
