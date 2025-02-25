@@ -60,7 +60,7 @@ abstract class Plugin_Base {
 	 *
 	 * @var array
 	 */
-	protected $autoload_matches_cache = [];
+	protected $autoload_matches_cache = array();
 
 	/**
 	 * Plugin_Base constructor.
@@ -73,7 +73,7 @@ abstract class Plugin_Base {
 		$this->slug     = basename( $this->dir_path );
 		$this->dir_url  = content_url( str_replace( wp_normalize_path( WP_CONTENT_DIR ), '', wp_normalize_path( $this->dir_path ) ) );
 
-		spl_autoload_register( [ $this, 'autoload' ] );
+		spl_autoload_register( array( $this, 'autoload' ) );
 	}
 
 	/**
@@ -104,19 +104,19 @@ abstract class Plugin_Base {
 	 *
 	 * @codeCoverageIgnore
 	 *
-	 * @param string $class Class name.
+	 * @param string $class_full_name Class name.
 	 *
 	 * @return void
 	 */
-	public function autoload( $class ) {
-		if ( ! isset( $this->autoload_matches_cache[ $class ] ) ) {
-			if ( ! preg_match( '/^(?P<namespace>.+)\\\\(?P<class>[^\\\\]+)$/', $class, $matches ) ) {
+	public function autoload( $class_full_name ) {
+		if ( ! isset( $this->autoload_matches_cache[ $class_full_name ] ) ) {
+			if ( ! preg_match( '/^(?P<namespace>.+)\\\\(?P<class>[^\\\\]+)$/', $class_full_name, $matches ) ) {
 				$matches = false;
 			}
 
-			$this->autoload_matches_cache[ $class ] = $matches;
+			$this->autoload_matches_cache[ $class_full_name ] = $matches;
 		} else {
-			$matches = $this->autoload_matches_cache[ $class ];
+			$matches = $this->autoload_matches_cache[ $class_full_name ];
 		}
 
 		if ( empty( $matches ) ) {
@@ -156,11 +156,11 @@ abstract class Plugin_Base {
 	 * @throws Exception If the plugin is not located in the expected location.
 	 */
 	public function locate_plugin() {
-		return [
+		return array(
 			'dir_url'      => $this->dir_url,
 			'dir_path'     => $this->dir_path,
 			'dir_basename' => $this->slug,
-		];
+		);
 	}
 
 	/**

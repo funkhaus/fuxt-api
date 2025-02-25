@@ -58,14 +58,14 @@ class Block {
 			$extended_block['inner_blocks'] = $extended_inner_blocks;
 		}
 
-		if ( strpos( $block['blockName'], 'acf/' ) === 0) {
-			$attributes       = $block['attrs'];
+		if ( strpos( $block['blockName'], 'acf/' ) === 0 ) {
+			$attributes = $block['attrs'];
 
 			// Generate block id.
 			$attributes['id'] = \acf_get_block_id( $attributes );
 
 			// Prepare block by attributes.
-			$prepared_block   = \acf_prepare_block( $attributes );
+			$prepared_block = \acf_prepare_block( $attributes );
 
 			// Ensure block ID is prefixed for render.
 			$prepared_block['id'] = \acf_ensure_block_id_prefix( $prepared_block['id'] );
@@ -76,7 +76,7 @@ class Block {
 			// Get fields objects
 			$fields = \get_field_objects( $prepared_block['id'] );
 
-			$extended_block['acf'] = Acf::get_data_by_fields( $fields );
+			$extended_block['acf'] = ( new Acf() )->get_data_by_fields( $fields );
 		}
 
 		// Specific block handling.
@@ -107,7 +107,7 @@ class Block {
 		}
 
 		$block_definition            = $block_registry->get_registered( $block['blockName'] ) ?? null;
-		$block_definition_attributes = $block_definition->attributes ?? [];
+		$block_definition_attributes = $block_definition->attributes ?? array();
 		$block_attributes            = $block['attrs'];
 
 		// Make id field mandatory.
@@ -179,8 +179,8 @@ class Block {
 				}
 			} elseif ( 'rich-text' === $attribute_source || 'html' === $attribute_source ) {
 				$attribute_value = '';
-				foreach ($seleted_dom->childNodes as $child) {
-					$attribute_value .= $seleted_dom->ownerDocument->saveHTML($child);
+				foreach ( $seleted_dom->childNodes as $child ) {
+					$attribute_value .= $seleted_dom->ownerDocument->saveHTML( $child );
 				}
 			} elseif ( 'text' === $attribute_source ) {
 				$attribute_value = $seleted_dom->textContent;
@@ -263,5 +263,4 @@ class Block {
 
 		return $inner_html;
 	}
-
 }

@@ -17,6 +17,9 @@ use FuxtApi\Utils\Post as PostUtils;
  */
 class Acf {
 
+	public function __construct( private $additional_post_params = array() ) {
+	}
+
 	/**
 	 * Get acf data.
 	 *
@@ -24,12 +27,12 @@ class Acf {
 	 *
 	 * @return array|null
 	 */
-	public static function get_data_by_id( $object_id ) {
+	public function get_data_by_id( $object_id ) {
 
 		if ( function_exists( 'get_field_objects' ) ) {
 			$fields = \get_field_objects( $object_id );
 
-			return self::get_data_by_fields( $fields );
+			return $this->get_data_by_fields( $fields );
 		}
 
 		return null;
@@ -42,7 +45,7 @@ class Acf {
 	 *
 	 * @return array|null
 	 */
-	public static function get_data_by_fields( $fields ) {
+	public function get_data_by_fields( $fields ) {
 		$data = array();
 		if ( ! empty( $fields ) ) {
 			foreach ( $fields as $key => $field ) {
@@ -66,13 +69,18 @@ class Acf {
 							break;
 
 						case 'post_object':
-							$value = PostUtils::get_postdata( $field['value'] );
+							$value = PostUtils::get_postdata( $field['value'], $this->additional_post_params );
 
 							break;
 
 						case 'relationship':
 							if ( is_array( $field['value'] ) ) {
-								$value = array_map( array( PostUtils::class, 'get_postdata' ), $field['value'] );
+								$value = array_map(
+									function ( $id ) {
+										return PostUtils::get_postdata( $id, $this->additional_post_params );
+									},
+									$field['value']
+								);
 							}
 
 							break;
@@ -88,10 +96,15 @@ class Acf {
 							if ( $field['multiple'] ) {
 								if ( is_array( $field['value'] ) ) {
 									$ids   = array_map( array( PostUtils::class, 'get_post_by_uri' ), $field['value'] );
-									$value = array_map( array( PostUtils::class, 'get_postdata' ), $ids );
+									$value = array_map(
+										function ( $id ) {
+											return PostUtils::get_postdata( $id, $this->additional_post_params );
+										},
+										$ids
+									);
 								}
 							} else {
-								$value = PostUtils::get_postdata( PostUtils::get_post_by_uri( $field['value'] ) );
+								$value = PostUtils::get_postdata( PostUtils::get_post_by_uri( $field['value'] ), $this->additional_post_params );
 							}
 
 							break;
@@ -104,7 +117,7 @@ class Acf {
 									$sub_field['value'] = $field['value'][ $sub_field_name ] ?? null;
 								}
 
-								$value = self::get_data_by_fields( $sub_fields );
+								$value = $this->get_data_by_fields( $sub_fields );
 							}
 
 							break;
@@ -120,7 +133,7 @@ class Acf {
 										foreach ( $sub_fields as $sub_field_name => &$sub_field ) {
 											$sub_field['value'] = $row[ $sub_field_name ] ?? null;
 										}
-										$value[] = self::get_data_by_fields( $sub_fields );
+										$value[] = $this->get_data_by_fields( $sub_fields );
 									}
 								}
 							}
@@ -186,7 +199,7 @@ class Acf {
 	 *
 	 * @return array|null Returns option value.
 	 */
-	public static function get_option_by_name( $title ) {
+	public function get_option_by_name( $title ) {
 		$posts = get_posts(
 			array(
 				'post_type' => 'acf-field-group',
@@ -207,6 +220,6 @@ class Acf {
 			$data[ $field['name'] ] = $field;
 		}
 
-		return self::get_data_by_fields( $data );
+		return $this->get_data_by_fields( $data );
 	}
 }
