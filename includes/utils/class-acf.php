@@ -17,7 +17,7 @@ use FuxtApi\Utils\Post as PostUtils;
  */
 class Acf {
 
-	public function __construct( private $additional_post_params = array() ) {
+	public function __construct( private $additional_post_params = array(), private $post_params = array() ) {
 	}
 
 	/**
@@ -69,7 +69,7 @@ class Acf {
 							break;
 
 						case 'post_object':
-							$value = PostUtils::get_postdata( $field['value'], $this->additional_post_params );
+							$value = PostUtils::get_postdata( $field['value'], $this->additional_post_params, $this->post_params );
 
 							break;
 
@@ -77,7 +77,7 @@ class Acf {
 							if ( is_array( $field['value'] ) ) {
 								$value = array_map(
 									function ( $id ) {
-										return PostUtils::get_postdata( $id, $this->additional_post_params );
+										return PostUtils::get_postdata( $id, $this->additional_post_params, $this->post_params );
 									},
 									$field['value']
 								);
@@ -98,13 +98,13 @@ class Acf {
 									$ids   = array_map( array( PostUtils::class, 'get_post_by_uri' ), $field['value'] );
 									$value = array_map(
 										function ( $id ) {
-											return PostUtils::get_postdata( $id, $this->additional_post_params );
+											return PostUtils::get_postdata( $id, $this->additional_post_params, $this->post_params );
 										},
 										$ids
 									);
 								}
 							} else {
-								$value = PostUtils::get_postdata( PostUtils::get_post_by_uri( $field['value'] ), $this->additional_post_params );
+								$value = PostUtils::get_postdata( PostUtils::get_post_by_uri( $field['value'] ), $this->additional_post_params, $this->post_params );
 							}
 
 							break;
