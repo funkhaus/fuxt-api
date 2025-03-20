@@ -81,8 +81,10 @@ class Post {
 			);
 
 			if ( in_array( 'acf', $additional_fields ) ) {
-				$acf_utils   = new AcfUtils( $inherit_fields );
-				$data['acf'] = $acf_utils->get_data_by_id( $post->ID );
+				if ( $params['acf_depth'] > 0 ) {
+					$acf_utils   = new AcfUtils( $inherit_fields, array( 'acf_depth' => $params['acf_depth'] - 1 ) );
+					$data['acf'] = $acf_utils->get_data_by_id( $post->ID );
+				}
 			}
 
 			if ( in_array( 'siblings', $additional_fields ) ) {
