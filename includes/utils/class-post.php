@@ -80,6 +80,10 @@ class Post {
 				)
 			);
 
+			if ( ! isset($params['acf_depth'] ) ) {
+				$params['acf_depth'] = 2;
+			}
+
 			if ( in_array( 'acf', $additional_fields ) ) {
 				if ( $params['acf_depth'] > 0 ) {
 					$acf_utils   = new AcfUtils( $inherit_fields, array( 'acf_depth' => $params['acf_depth'] - 1 ) );
