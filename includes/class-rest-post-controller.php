@@ -104,6 +104,10 @@ class REST_Post_Controller {
 				'description' => __( 'Children depth value. If this value is 2, first grand child is returned for each child. Only works when children field exists.', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
+			'acf_depth'    => array(
+				'description' => __( 'ACF field depth value.', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
 		);
 	}
 
@@ -294,7 +298,7 @@ class REST_Post_Controller {
 					),
 				),
 				'children'       => array(
-					'description' => __( '(Optional by request) Children data. Ordered by menu_order ASC for hierarchical post types. Can be filtered by fields `post_peage`, `paged`, and `depth` value' ),
+					'description' => __( '(Optional by request) Children data. Ordered by menu_order ASC for hierarchical post types. Can be filtered by fields `posts_per_page`, `paged`, and `depth` value' ),
 					'type'        => array( 'array', 'null' ),
 					'items'       => array(
 						'type' => 'object',
@@ -365,6 +369,10 @@ class REST_Post_Controller {
 					$params[ $field ] = $request[ $field ];
 				}
 			}
+		}
+
+		if ( in_array( 'acf', $additional_fields ) ) {
+			$params['acf_depth'] = $request['acf_depth'] ?? 2; // Depth 2 by default.
 		}
 
 		$post     = PostUtils::get_postdata( $post, $additional_fields, $params );

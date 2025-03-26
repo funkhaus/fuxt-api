@@ -4,7 +4,6 @@
     <rule ref="WordPress-Core">
         <!-- <exclude name="PEAR.Commenting.FileComment.Missing"/> -->
         <exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
-        <exclude name="WordPress.PHP.StrictComparisons"/>
         <exclude name="WordPress.PHP.StrictInArray"/>
         <exclude name="WordPress.WP.I18n.MissingTranslatorsComment"/>
         <exclude name="WordPress.CodeAnalysis.AssignmentInCondition.Found"/>

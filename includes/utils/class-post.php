@@ -8,7 +8,7 @@
 namespace FuxtApi\Utils;
 
 use FuxtApi\Utils\Block as BlockUtils;
-use FuxtApi\Utils\Utils as Utils;
+use FuxtApi\Utils\Utils;
 use FuxtApi\Utils\Acf as AcfUtils;
 
 /**
@@ -63,10 +63,6 @@ class Post {
 				$data['blocks'] = BlockUtils::filter_blocks( $post );
 			}
 
-			if ( in_array( 'acf', $additional_fields ) ) {
-				$data['acf'] = AcfUtils::get_data_by_id( $post->ID );
-			}
-
 			if ( in_array( 'terms', $additional_fields ) ) {
 				$taxonomies = get_object_taxonomies( $post->post_type, 'names' );
 				foreach ( $taxonomies as $taxonomy ) {
@@ -84,6 +80,17 @@ class Post {
 				)
 			);
 
+			if ( ! isset($params['acf_depth'] ) ) {
+				$params['acf_depth'] = 2;
+			}
+
+			if ( in_array( 'acf', $additional_fields ) ) {
+				if ( $params['acf_depth'] > 0 ) {
+					$acf_utils   = new AcfUtils( $inherit_fields, array( 'acf_depth' => $params['acf_depth'] - 1 ) );
+					$data['acf'] = $acf_utils->get_data_by_id( $post->ID );
+				}
+			}
+
 			if ( in_array( 'siblings', $additional_fields ) ) {
 				$data['siblings'] = array();
 				$sibling_posts    = self::get_sibling_posts( $post );
@@ -92,7 +99,7 @@ class Post {
 				$sibling_posts = array_values(
 					array_filter(
 						$sibling_posts,
-						function( $sibling ) use ( $post ) {
+						function ( $sibling ) use ( $post ) {
 							return $sibling->ID !== $post->ID;
 						}
 					)
@@ -196,7 +203,7 @@ class Post {
 	 *
 	 * @return \WP_Post|null
 	 */
-	public static function get_next_prev_post( $post, $is_next = true, $loop = true ) {
+	private static function get_next_prev_post( $post, $is_next = true, $loop = true ) {
 		// Get all siblings
 		$siblings = self::get_sibling_posts( $post );
 
@@ -205,7 +212,7 @@ class Post {
 		}
 
 		$sibling_ids = array_map(
-			function( $sibling ) {
+			function ( $sibling ) {
 				return $sibling->ID;
 			},
 			$siblings
@@ -215,13 +222,13 @@ class Post {
 		$index = array_search( $post->ID, $sibling_ids );
 
 		if ( $is_next ) {
-			if ( $index == count( $siblings ) - 1 ) {
+			if ( $index === count( $siblings ) - 1 ) {
 				return $loop ? $siblings[0] : null;
 			}
 
 			return $siblings[ $index + 1 ];
 		} else {
-			if ( $index == 0 ) {
+			if ( $index === 0 ) {
 				return $loop ? end( $siblings ) : null;
 			}
 
@@ -236,7 +243,7 @@ class Post {
 	 *
 	 * @return \WP_Post[]
 	 */
-	public static function get_sibling_posts( $post ) {
+	private static function get_sibling_posts( $post ) {
 		$post_type = get_post_type( $post );
 
 		$orderby = is_post_type_hierarchical( $post_type ) ? 'menu_order' : 'date';
@@ -425,7 +432,7 @@ class Post {
 	 * @param string $url Permalink to check.
 	 * @return int Post ID, or 0 on failure.
 	 */
-	public static function url_to_postid( $url ) {
+	private static function url_to_postid( $url ) {
 		global $wp_rewrite;
 
 		// First, check to see if there is a 'p=N' or 'page_id=N' to match against.
@@ -525,5 +532,4 @@ class Post {
 		}
 		return 0;
 	}
-
 }

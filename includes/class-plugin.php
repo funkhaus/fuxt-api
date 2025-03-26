@@ -7,7 +7,7 @@
 
 namespace FuxtApi;
 
-use \FuxtApi\Plugin_Base;
+use FuxtApi\Plugin_Base;
 
 /**
  * Class Plugin

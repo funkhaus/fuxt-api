@@ -116,7 +116,7 @@ class Utils {
 
 		// Add acf meta data.
 		if ( function_exists( 'get_fields' ) ) {
-			$image_data['acf'] = AcfUtils::get_data_by_id( $image_id );
+			$image_data['acf'] = ( new AcfUtils() )->get_data_by_id( $image_id );
 		}
 
 		return $image_data;
@@ -174,7 +174,7 @@ class Utils {
 
 		// Add acf meta data.
 		if ( function_exists( 'get_fields' ) ) {
-			$video_data['acf'] = AcfUtils::get_data_by_id( $video_id );
+			$video_data['acf'] = ( new AcfUtils() )->get_data_by_id( $video_id );
 		}
 
 		return $video_data;
