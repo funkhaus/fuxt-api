@@ -80,6 +80,7 @@ class REST_Acf_Controller {
 			'name' => array(
 				'description' => __( 'ACF option name', 'fuxt-api' ),
 				'type'        => 'string',
+				'required'    => true,
 			),
 		);
 	}
