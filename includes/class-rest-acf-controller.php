@@ -48,9 +48,10 @@ class REST_Acf_Controller {
 
 	public function get_item_schema() {
 		$schema = array(
-			'$schema' => 'http://json-schema.org/draft-04/schema#',
-			'title'   => 'fuxt_acf_options',
-			'type'    => 'object',
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'fuxt_acf_options',
+			'type'       => 'object',
+			'properties' => array(),
 		);
 
 		return $schema;
@@ -79,6 +80,7 @@ class REST_Acf_Controller {
 			'name' => array(
 				'description' => __( 'ACF option name', 'fuxt-api' ),
 				'type'        => 'string',
+				'required'    => true,
 			),
 		);
 	}
