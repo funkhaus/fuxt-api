@@ -138,6 +138,10 @@ class REST_Post_Controller {
 					'description' => __( 'The excerpt for the post.' ),
 					'type'        => 'string',
 				),
+				'raw_excerpt'        => array(
+					'description' => __( 'The raw excerpt data for the post. Returns empty strying if field data is empty.' ),
+					'type'        => 'string',
+				),
 				'featured_media' => array(
 					'description' => __( 'Featured media for the post.' ),
 					'type'        => array( 'object', 'null' ),
