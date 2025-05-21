@@ -138,7 +138,7 @@ class REST_Post_Controller {
 					'description' => __( 'The excerpt for the post.' ),
 					'type'        => 'string',
 				),
-				'raw_excerpt'        => array(
+				'excerpt_raw'        => array(
 					'description' => __( 'The raw excerpt data for the post. Returns empty strying if field data is empty.' ),
 					'type'        => 'string',
 				),
