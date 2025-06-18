@@ -66,12 +66,12 @@ class REST_Post_Controller {
 	 */
 	public function get_collection_params() {
 		return array(
-			'uri'      => array(
+			'uri'       => array(
 				'description' => __( 'Post slug to get post object by.', 'fuxt-api' ),
 				'type'        => 'string',
 				'required'    => true,
 			),
-			'fields'   => array(
+			'fields'    => array(
 				'description' => __( 'Additional fields to return. Comma separated string of fields.', 'fuxt-api' ),
 				'type'        => array( 'string', 'array' ),
 				'items'       => array(
@@ -88,23 +88,31 @@ class REST_Post_Controller {
 					),
 				),
 			),
-			'children' => array(
+			'children'  => array(
 				'description' => __( 'Shorthand for fields[]=children&depth={depth}. Children depth value to include. Children field will be added to response. Only first grand child is returned.', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
-			'per_page' => array(
+			'per_page'  => array(
 				'description' => __( 'Children per page count. Only works when children field exists', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
-			'page'     => array(
+			'page'      => array(
 				'description' => __( 'Children page number. Only works when children field exists', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
-			'depth'    => array(
+			'paged'     => array(
+				'description' => __( 'Alias of page. Added for WordPress convention', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
+			'offset'    => array(
+				'description' => __( 'Children offset. Only works when children field exists', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
+			'depth'     => array(
 				'description' => __( 'Children depth value. If this value is 2, first grand child is returned for each child. Only works when children field exists.', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
-			'acf_depth'    => array(
+			'acf_depth' => array(
 				'description' => __( 'ACF field depth value.', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
@@ -138,7 +146,7 @@ class REST_Post_Controller {
 					'description' => __( 'The excerpt for the post.' ),
 					'type'        => 'string',
 				),
-				'excerpt_raw'        => array(
+				'excerpt_raw'    => array(
 					'description' => __( 'The raw excerpt data for the post. Returns empty strying if field data is empty.' ),
 					'type'        => 'string',
 				),
@@ -364,6 +372,8 @@ class REST_Post_Controller {
 			$param_fields = array(
 				'per_page',
 				'page',
+				'paged',
+				'offset',
 			);
 
 			$params['depth'] = isset( $request['depth'] ) ? $request['depth'] : ( isset( $request['children'] ) ? $request['children'] : 1 );

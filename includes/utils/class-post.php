@@ -81,7 +81,7 @@ class Post {
 				)
 			);
 
-			if ( ! isset($params['acf_depth'] ) ) {
+			if ( ! isset( $params['acf_depth'] ) ) {
 				$params['acf_depth'] = 2;
 			}
 
@@ -129,6 +129,14 @@ class Post {
 
 				if ( isset( $params['page'] ) ) {
 					$query_params['paged'] = $params['page'];
+				}
+
+				if ( isset( $params['paged'] ) ) {
+					$query_params['paged'] = $params['paged'];
+				}
+
+				if ( isset( $params['offset'] ) ) {
+					$query_params['offset'] = $params['offset'];
 				}
 
 				$posts_query = new \WP_Query();
@@ -388,6 +396,14 @@ class Post {
 
 		if ( isset( $params['page'] ) ) {
 			$query_params['paged'] = (int) $params['page'];
+		}
+
+		if ( isset( $params['paged'] ) ) {
+			$query_params['paged'] = (int) $params['paged'];
+		}
+
+		if ( isset( $params['offset'] ) ) {
+			$query_params['offset'] = (int) $params['offset'];
 		}
 
 		if ( isset( $params['orderby'] ) ) {
