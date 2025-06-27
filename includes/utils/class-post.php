@@ -46,6 +46,7 @@ class Post {
 			'title'          => get_the_title( $post ),
 			'content'        => apply_filters( 'the_content', $post->post_content ),
 			'excerpt'        => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) ),
+			'excerpt_raw'    => apply_filters( 'the_excerpt', $post->post_excerpt ),
 			'slug'           => $post->post_name,
 			'url'            => $url,
 			'uri'            => $to,
