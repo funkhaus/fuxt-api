@@ -113,8 +113,9 @@ class Post {
 
 			if ( in_array( 'children', $additional_fields ) ) {
 				$query_params = array(
-					'post_parent' => $post->ID,
-					'post_type'   => $post->post_type,
+					'post_parent'      => $post->ID,
+					'post_type'        => $post->post_type,
+					'suppress_filters' => true,
 				);
 
 				// Default order is menu_order for hierarchical post types such as page.
@@ -147,14 +148,19 @@ class Post {
 
 					$depth -= 1;
 
+					$child_params = array(
+						'depth' => $depth,
+					);
+
+					if ( isset( $params['per_page'] ) ) {
+						$child_params['per_page'] = $params['per_page'];
+					}
+
 					foreach ( $children as $child ) {
 						$children_data[] = self::get_postdata(
 							$child,
 							$child_additional_fields,
-							array(
-								'per_page' => $params['per_page'],
-								'depth'    => $depth,
-							)
+							$child_params
 						);
 					}
 				}
