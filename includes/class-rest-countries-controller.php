@@ -23,7 +23,7 @@ class REST_Countries_Controller {
 	private array $relationship_fields = [ 'areas_of_expertise_links' ]; // Relationship to 'area-of-expertise' post type
 
 	/**
-	 * Minimal Countries REST endpoint
+	 * Countries REST endpoint
 	 * GET /wp-json/fuxt/v1/countries?per_page=100&page=1
 	 *
 	 * Returns items shaped like:
@@ -33,10 +33,49 @@ class REST_Countries_Controller {
 	 *   "has_more": true,
 	 *   "items": [
 	 *     { 
-	 *       "id": 123, 
-	 *       "slug": "kenya", 
+	 *       "id": 3191,
+	 *       "guid": "https://jhpiego.netlify.app/?post_type=country&#038;p=3191",
+	 *       "title": "United States of America",
+	 *       "content": "",
+	 *       "excerpt": "",
+	 *       "excerpt_raw": "",
+	 *       "slug": "united-states-of-america",
+	 *       "url": "https://jhpiego.netlify.app/where-we-work/united-states-of-america/",
+	 *       "uri": "/where-we-work/united-states-of-america/",
+	 *       "to": "/where-we-work/united-states-of-america/",
+	 *       "status": "publish",
+	 *       "date": "2025-08-05T19:56:25",
+	 *       "modified": "2025-08-27T18:08:33",
+	 *       "type": "country",
+	 *       "author_id": 4,
+	 *       "featured_media": {
+	 *         "id": 123,
+	 *         "src": "https://example.com/image.jpg",
+	 *         "width": 1920,
+	 *         "height": 1080,
+	 *         "alt": "Image description",
+	 *         "caption": "Image caption",
+	 *         "title": "Image title",
+	 *         "description": "Image description",
+	 *         "srcset": "https://example.com/image-300x200.jpg 300w, https://example.com/image-600x400.jpg 600w",
+	 *         "sizes": "(max-width: 300px) 100vw, (max-width: 600px) 50vw, 25vw",
+	 *         "meta": { "width": 1920, "height": 1080, "file": "2023/01/image.jpg" },
+	 *         "acf": { "custom_field": "value" }
+	 *       },
+	 *       "terms": {
+	 *         "category": [
+	 *           {
+	 *             "id": 22,
+	 *             "name": "Americas",
+	 *             "slug": "the-americas",
+	 *             "parent": null,
+	 *             "uri": "/our-stories/c/the-americas/",
+	 *             "to": "/our-stories/c/the-americas/"
+	 *           }
+	 *         ]
+	 *       },
 	 *       "acf": { 
-	 *         "country_code": "KE", 
+	 *         "country_code": "US", 
 	 *         "areas_of_expertise_links": [
 	 *           { "id": 150, "title": "Agriculture", "slug": "agriculture", "acf": {} },
 	 *           { "id": 1587, "title": "Technology", "slug": "technology", "acf": {} }
@@ -121,12 +160,36 @@ class REST_Countries_Controller {
 		return rest_ensure_response( $payload );
 	}
 
-	/** Minimal shape: id, slug, acf subset */
+	/** Full shape: id, guid, title, content, excerpt, slug, url, uri, to, status, date, modified, type, author_id, featured_media, terms, acf subset */
 	private function map_country_min( $post_id ) : array {
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return [];
+		}
+
+		// Get the post URL and URI
+		$url = get_permalink( $post_id );
+		$uri = str_replace( home_url(), '', $url );
+
 		return [
-			'id'   => (int) $post_id,
-			'slug' => get_post_field( 'post_name', $post_id ),
-			'acf'  => $this->get_acf_subset( $post_id ),
+			'id'             => (int) $post_id,
+			'guid'           => $post->guid,
+			'title'          => $post->post_title,
+			'content'        => $post->post_content,
+			'excerpt'        => get_the_excerpt( $post_id ),
+			'excerpt_raw'    => $post->post_excerpt,
+			'slug'           => $post->post_name,
+			'url'            => $url,
+			'uri'            => $uri,
+			'to'             => $uri,
+			'status'         => $post->post_status,
+			'date'           => $post->post_date,
+			'modified'       => $post->post_modified,
+			'type'           => $post->post_type,
+			'author_id'      => (int) $post->post_author,
+			'featured_media' => $this->get_featured_media( $post_id ),
+			'terms'          => $this->get_post_terms( $post_id ),
+			'acf'            => $this->get_acf_subset( $post_id ),
 		];
 	}
 
@@ -196,5 +259,104 @@ class REST_Countries_Controller {
 		// Return empty array by default, but you can add specific ACF fields here
 		// if you need them for the related posts
 		return [];
+	}
+
+	/**
+	 * Get featured media for a post.
+	 *
+	 * @param int $post_id The post ID.
+	 * @return array|null Featured media data or null if no featured media.
+	 */
+	private function get_featured_media( int $post_id ) : ?array {
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+		if ( ! $thumbnail_id ) {
+			return null;
+		}
+
+		$attachment = get_post( $thumbnail_id );
+		if ( ! $attachment ) {
+			return null;
+		}
+
+		// Get image metadata
+		$image_meta = wp_get_attachment_metadata( $thumbnail_id );
+		$full_size_url = wp_get_attachment_url( $thumbnail_id );
+		
+		// Get responsive image data
+		$srcset = wp_get_attachment_image_srcset( $thumbnail_id );
+		$sizes = wp_get_attachment_image_sizes( $thumbnail_id );
+
+		return [
+			'id'          => $thumbnail_id,
+			'src'         => $full_size_url,
+			'width'       => isset( $image_meta['width'] ) ? (int) $image_meta['width'] : null,
+			'height'      => isset( $image_meta['height'] ) ? (int) $image_meta['height'] : null,
+			'alt'         => get_post_meta( $thumbnail_id, '_wp_attachment_image_alt', true ),
+			'caption'     => $attachment->post_excerpt,
+			'title'       => $attachment->post_title,
+			'description' => $attachment->post_content,
+			'srcset'      => $srcset ?: null,
+			'sizes'       => $sizes ?: null,
+			'meta'        => $image_meta,
+			'acf'         => $this->get_featured_media_acf( $thumbnail_id ),
+		];
+	}
+
+	/**
+	 * Get ACF data for featured media.
+	 *
+	 * @param int $attachment_id The attachment ID.
+	 * @return array|null ACF data or null if no ACF data.
+	 */
+	private function get_featured_media_acf( int $attachment_id ) : ?array {
+		if ( ! function_exists( 'get_field' ) ) {
+			return null;
+		}
+
+		// Get all ACF fields for the attachment
+		$acf_fields = get_fields( $attachment_id );
+		return $acf_fields ?: null;
+	}
+
+	/**
+	 * Get all terms (categories, tags, etc.) for a post.
+	 *
+	 * @param int $post_id The post ID.
+	 * @return array Terms organized by taxonomy.
+	 */
+	private function get_post_terms( int $post_id ) : array {
+		$terms = [];
+		
+		// Get all taxonomies for the post type
+		$taxonomies = get_object_taxonomies( get_post_type( $post_id ), 'objects' );
+		
+		foreach ( $taxonomies as $taxonomy ) {
+			$post_terms = get_the_terms( $post_id, $taxonomy->name );
+			if ( ! is_wp_error( $post_terms ) && ! empty( $post_terms ) ) {
+				$terms[ $taxonomy->name ] = array_map( [ $this, 'map_term' ], $post_terms );
+			}
+		}
+		
+		return $terms;
+	}
+
+	/**
+	 * Map a term to a structured array.
+	 *
+	 * @param \WP_Term $term The term object.
+	 * @return array Mapped term data.
+	 */
+	private function map_term( \WP_Term $term ) : array {
+		$term_url = get_term_link( $term );
+		$term_uri = is_wp_error( $term_url ) ? '' : str_replace( home_url(), '', $term_url );
+
+		return [
+			'id'     => $term->term_id,
+			'name'   => $term->name,
+			'slug'   => $term->slug,
+			'parent' => $term->parent ? (int) $term->parent : null,
+			'uri'    => $term_uri,
+			'to'     => $term_uri,
+		];
 	}
 }
