@@ -17,7 +17,10 @@ class REST_Countries_Controller {
 	const ROUTE         = '/countries';
 
 	/** Edit this list to change which ACF keys are returned */
-	private array $acf_keys = [ 'country_code', 'expertise_links' ];
+	private array $acf_keys = [ 'country_code', 'areas_of_expertise_links' ];
+
+	/** Fields that contain relationship IDs that should be expanded to full objects */
+	private array $relationship_fields = [ 'areas_of_expertise_links' ]; // Relationship to 'area-of-expertise' post type
 
 	/**
 	 * Minimal Countries REST endpoint
@@ -29,7 +32,17 @@ class REST_Countries_Controller {
 	 *   "per_page": 100,
 	 *   "has_more": true,
 	 *   "items": [
-	 *     { "id": 123, "slug": "kenya", "acf": { "country_code": "KE", "expertise_links": [...] } }
+	 *     { 
+	 *       "id": 123, 
+	 *       "slug": "kenya", 
+	 *       "acf": { 
+	 *         "country_code": "KE", 
+	 *         "areas_of_expertise_links": [
+	 *           { "id": 150, "title": "Agriculture", "slug": "agriculture", "acf": {} },
+	 *           { "id": 1587, "title": "Technology", "slug": "technology", "acf": {} }
+	 *         ]
+	 *       } 
+	 *     }
 	 *   ]
 	 * }
 	 */
@@ -123,9 +136,65 @@ class REST_Countries_Controller {
 			return $out;
 		}
 		foreach ( $this->acf_keys as $key ) {
-			// Third arg false = raw (unformatted) to keep payload light; change to true if you need formatting
-			$out[ $key ] = get_field( $key, $post_id, false );
+			$value = get_field( $key, $post_id, false );
+			
+			// Expand relationship fields to full post objects
+			if ( in_array( $key, $this->relationship_fields, true ) && is_array( $value ) ) {
+				$out[ $key ] = $this->expand_relationship_field( $value );
+			} else {
+				$out[ $key ] = $value;
+			}
 		}
 		return $out;
+	}
+
+	/**
+	 * Expand relationship field IDs to full post objects.
+	 *
+	 * @param array $ids Array of post IDs.
+	 * @return array Array of post objects with id, title, slug, and acf data.
+	 */
+	private function expand_relationship_field( array $ids ) : array {
+		if ( empty( $ids ) ) {
+			return [];
+		}
+
+		$posts = get_posts( [
+			'post__in'       => array_map( 'intval', $ids ),
+			'post_type'      => 'area-of-expertise', // Specific to the area-of-expertise custom post type
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'orderby'        => 'post__in', // Maintain the order from the relationship field
+		] );
+
+		return array_map( [ $this, 'map_relationship_post' ], $posts );
+	}
+
+	/**
+	 * Map a relationship post to a minimal object.
+	 *
+	 * @param \WP_Post $post The post object.
+	 * @return array Mapped post data.
+	 */
+	private function map_relationship_post( \WP_Post $post ) : array {
+		return [
+			'id'    => $post->ID,
+			'title' => $post->post_title,
+			'slug'  => $post->post_name,
+			'acf'   => $this->get_relationship_post_acf( $post->ID ),
+		];
+	}
+
+	/**
+	 * Get ACF data for a relationship post.
+	 * You can customize this to include specific ACF fields for related posts.
+	 *
+	 * @param int $post_id The post ID.
+	 * @return array ACF data.
+	 */
+	private function get_relationship_post_acf( int $post_id ) : array {
+		// Return empty array by default, but you can add specific ACF fields here
+		// if you need them for the related posts
+		return [];
 	}
 }
