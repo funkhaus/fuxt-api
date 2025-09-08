@@ -29,20 +29,22 @@ class REST_Email_Controller {
 	 * Register email endpoint.
 	 */
 	public function register_endpoint() {
+		// Debug: Log that we're registering the endpoint
+		error_log( 'Fuxt API: Registering POST-only email endpoint at ' . self::REST_NAMESPACE . self::ROUTE );
+		
 		register_rest_route(
 			self::REST_NAMESPACE,
 			self::ROUTE,
 			array(
-				array(
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'send_email' ),
-					'permission_callback' => array( $this, 'send_email_permissions_check' ),
-					'args'                => $this->get_collection_params(),
-				),
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'send_email' ),
+				'permission_callback' => array( $this, 'send_email_permissions_check' ),
+				'args'                => $this->get_collection_params(),
 				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
 	}
+
 
 	/**
 	 * Checks if a given request has access to send emails.
@@ -128,6 +130,16 @@ class REST_Email_Controller {
 				'type'        => 'boolean',
 				'default'     => false,
 			),
+			'trap'        => array(
+				'description' => __( 'Crude anti-spam measure. This must equal the clientRequestId, otherwise the email will not be sent.', 'fuxt-api' ),
+				'type'        => 'string',
+				'required'    => true,
+			),
+			'clientRequestId' => array(
+				'description' => __( 'Client request ID for anti-spam verification.', 'fuxt-api' ),
+				'type'        => 'string',
+				'required'    => true,
+			),
 		);
 	}
 
@@ -178,12 +190,32 @@ class REST_Email_Controller {
 		$headers     = $request['headers'];
 		$attachments = $request['attachments'];
 		$is_html     = (bool) $request['is_html'];
+		$trap        = sanitize_text_field( $request['trap'] );
+		$client_request_id = sanitize_text_field( $request['clientRequestId'] );
 
 		// Validate required fields
 		if ( empty( $to ) || empty( $subject ) || empty( $message ) ) {
 			return new \WP_Error(
 				'rest_email_missing_fields',
 				__( 'Missing required fields: to, subject, and message are required.', 'fuxt-api' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Validate spam trap
+		if ( empty( $trap ) || empty( $client_request_id ) ) {
+			return new \WP_Error(
+				'rest_email_missing_spam_fields',
+				__( 'Missing required fields: trap and clientRequestId are required for spam protection.', 'fuxt-api' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Check spam trap
+		if ( $trap !== $client_request_id ) {
+			return new \WP_Error(
+				'rest_email_spam_trap_failed',
+				__( 'Spam trap validation failed. Email not sent.', 'fuxt-api' ),
 				array( 'status' => 400 )
 			);
 		}
