@@ -18,7 +18,7 @@ curl -X POST "https://yoursite.com/wp-json/fuxt/v1/email" \
     "subject": "Test Email",
     "message": "This is a test email from the Fuxt API.",
     "trap": "unique-client-id-123",
-    "clientRequestId": "unique-client-id-123"
+    "client_request_id": "unique-client-id-123"
   }'
 ```
 
@@ -33,7 +33,7 @@ curl -X POST "https://yoursite.com/wp-json/fuxt/v1/email" \
     "message": "<h1>Hello World!</h1><p>This is an <strong>HTML</strong> email.</p>",
     "is_html": true,
     "trap": "unique-client-id-456",
-    "clientRequestId": "unique-client-id-456"
+    "client_request_id": "unique-client-id-456"
   }'
 ```
 
@@ -50,7 +50,7 @@ curl -X POST "https://yoursite.com/wp-json/fuxt/v1/email" \
     "from_email": "john@example.com",
     "reply_to": "noreply@example.com",
     "trap": "unique-client-id-789",
-    "clientRequestId": "unique-client-id-789"
+    "client_request_id": "unique-client-id-789"
   }'
 ```
 
@@ -66,7 +66,7 @@ curl -X POST "https://yoursite.com/wp-json/fuxt/v1/email" \
     "cc": "cc1@example.com, cc2@example.com",
     "bcc": "bcc@example.com",
     "trap": "unique-client-id-101",
-    "clientRequestId": "unique-client-id-101"
+    "client_request_id": "unique-client-id-101"
   }'
 ```
 
@@ -84,7 +84,7 @@ curl -X POST "https://yoursite.com/wp-json/fuxt/v1/email" \
       "https://example.com/remote-file.jpg"
     ],
     "trap": "unique-client-id-102",
-    "clientRequestId": "unique-client-id-102"
+    "client_request_id": "unique-client-id-102"
   }'
 ```
 
@@ -103,7 +103,7 @@ curl -X POST "https://yoursite.com/wp-json/fuxt/v1/email" \
       "Importance": "high"
     },
     "trap": "unique-client-id-103",
-    "clientRequestId": "unique-client-id-103"
+    "client_request_id": "unique-client-id-103"
   }'
 ```
 
@@ -143,7 +143,7 @@ sendEmail({
   subject: 'Test Email',
   message: 'This is a test email from JavaScript.',
   trap: 'unique-client-id-js-123',
-  clientRequestId: 'unique-client-id-js-123'
+  client_request_id: 'unique-client-id-js-123'
 });
 ```
 
@@ -202,7 +202,7 @@ const ContactForm = () => {
         from_email: formData.email,
         reply_to: formData.email,
         trap: clientId,
-        clientRequestId: clientId
+        client_request_id: clientId
       });
       alert('Message sent successfully!');
     } catch (err) {
@@ -251,7 +251,7 @@ $result = send_email_via_api([
     'from_name' => 'WordPress Site',
     'from_email' => 'noreply@yoursite.com',
     'trap' => $client_id,
-    'clientRequestId' => $client_id
+    'client_request_id' => $client_id
 ]);
 ```
 
@@ -287,8 +287,8 @@ $result = send_email_via_api([
 | `to` | string | Yes | - | Email address to send to |
 | `subject` | string | Yes | - | Email subject |
 | `message` | string | Yes | - | Email message content |
-| `trap` | string | Yes | - | Anti-spam measure. Must equal clientRequestId |
-| `clientRequestId` | string | Yes | - | Client request ID for anti-spam verification |
+| `trap` | string | Yes | - | Anti-spam measure. Must equal client_request_id |
+| `client_request_id` | string | Yes | - | Client request ID for anti-spam verification |
 | `from_name` | string | No | Site name | Sender name |
 | `from_email` | string | No | Admin email | Sender email address |
 | `reply_to` | string | No | from_email | Reply-to email address |
@@ -303,8 +303,8 @@ $result = send_email_via_api([
 The email endpoint includes a built-in spam trap mechanism to prevent automated spam submissions:
 
 - **trap**: A string value that must be provided by the client
-- **clientRequestId**: A string value that must be provided by the client
-- **Validation**: The `trap` value must exactly match the `clientRequestId` value, otherwise the email will be rejected
+- **client_request_id**: A string value that must be provided by the client
+- **Validation**: The `trap` value must exactly match the `client_request_id` value, otherwise the email will be rejected
 
 This simple mechanism helps prevent automated spam bots from sending emails through your API, as legitimate clients will generate matching values for both parameters.
 
@@ -314,19 +314,19 @@ This simple mechanism helps prevent automated spam bots from sending emails thro
 // Generate a unique client ID
 const clientId = `email-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-// Both trap and clientRequestId must be the same value
+// Both trap and client_request_id must be the same value
 const emailData = {
   to: 'recipient@example.com',
   subject: 'Test Email',
   message: 'This email has spam protection.',
   trap: clientId,
-  clientRequestId: clientId
+  client_request_id: clientId
 };
 ```
 
 ## Security Considerations
 
-1. **Spam Protection**: The trap/clientRequestId mechanism provides basic spam protection. Consider additional measures for high-traffic sites.
+1. **Spam Protection**: The trap/client_request_id mechanism provides basic spam protection. Consider additional measures for high-traffic sites.
 
 2. **Permissions**: By default, the endpoint allows public access. You can restrict access using the `fuxt_api_email_permissions` filter:
 

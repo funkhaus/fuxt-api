@@ -135,7 +135,7 @@ class REST_Email_Controller {
 				'type'        => 'string',
 				'required'    => true,
 			),
-			'clientRequestId' => array(
+			'client_request_id' => array(
 				'description' => __( 'Client request ID for anti-spam verification.', 'fuxt-api' ),
 				'type'        => 'string',
 				'required'    => true,
@@ -191,7 +191,7 @@ class REST_Email_Controller {
 		$attachments = $request['attachments'];
 		$is_html     = (bool) $request['is_html'];
 		$trap        = sanitize_text_field( $request['trap'] );
-		$client_request_id = sanitize_text_field( $request['clientRequestId'] );
+		$client_request_id = sanitize_text_field( $request['client_request_id'] );
 
 		// Validate required fields
 		if ( empty( $to ) || empty( $subject ) || empty( $message ) ) {
@@ -206,7 +206,7 @@ class REST_Email_Controller {
 		if ( empty( $trap ) || empty( $client_request_id ) ) {
 			return new \WP_Error(
 				'rest_email_missing_spam_fields',
-				__( 'Missing required fields: trap and clientRequestId are required for spam protection.', 'fuxt-api' ),
+				__( 'Missing required fields: trap and client_request_id are required for spam protection.', 'fuxt-api' ),
 				array( 'status' => 400 )
 			);
 		}
