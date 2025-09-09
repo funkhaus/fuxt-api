@@ -29,7 +29,7 @@ class Plugin extends Plugin_Base {
 		// Email controller is commented out for security - it exposes a public email endpoint
 		// To enable: uncomment the line below and ensure proper spam protection is in place
 		// See EMAIL_API_EXAMPLES.md for usage examples and security considerations
-		// ( new REST_Email_Controller() )->init();
+		( new REST_Email_Controller() )->init();
 
 		$this->update_check();
 	}
