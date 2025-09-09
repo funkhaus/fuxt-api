@@ -24,6 +24,7 @@ class Plugin extends Plugin_Base {
 		( new REST_Acf_Controller() )->init();
 		( new REST_Posts_Controller() )->init();
 		( new REST_User_Controller() )->init();
+		( new REST_Countries_Controller() )->init();
 		
 		// Email controller is commented out for security - it exposes a public email endpoint
 		// To enable: uncomment the line below and ensure proper spam protection is in place
