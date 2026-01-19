@@ -86,12 +86,6 @@ class Utils {
 			'html'        => wp_get_attachment_image( $image_id, 'full' ),
 		);
 
-		// Check if svg.
-		$svg = self::encode_svg( $image_id );
-		if ( $svg ) {
-			$image_data['encoded_content'] = $svg;
-		}
-
 		// Add meta data.
 		$image_meta = wp_get_attachment_metadata( $image_id );
 		if ( is_array( $image_meta ) ) {
@@ -120,25 +114,6 @@ class Utils {
 		}
 
 		return $image_data;
-	}
-
-	/**
-	 * Encode SVG file by id.
-	 *
-	 * @param int $image_id Attachement id.
-	 * @return string|false
-	 */
-	private static function encode_svg( $image_id ) {
-		$file_path = get_attached_file( $image_id );
-		$file_type = wp_check_filetype( $file_path );
-		if ( $file_type['ext'] === 'svg' ) {
-			$svg_content = file_get_contents( $file_path );
-			if ( $svg_content ) {
-				return base64_encode( $svg_content );
-			}
-		}
-
-		return false;
 	}
 
 	/**
@@ -180,7 +155,15 @@ class Utils {
 		return $video_data;
 	}
 
-	public static function get_termdata( $term_taxonomy ) {
+	/**
+	 * Get term data.
+	 *
+	 * @param \WP_Term|int $term_taxonomy Term object or term taxonomy ID.
+	 * @param bool         $include_acf   Whether to include ACF fields for the term.
+	 *
+	 * @return array|null
+	 */
+	public static function get_termdata( $term_taxonomy, $include_acf = false ) {
 		if ( empty( $term_taxonomy ) ) {
 			return null;
 		}
@@ -195,14 +178,20 @@ class Utils {
 
 		$to = self::get_relative_url( get_term_link( $term_taxonomy ) );
 
-		return array(
+		$data = array(
 			'id'     => $term_taxonomy->term_id,
 			'name'   => $term_taxonomy->name,
 			'slug'   => $term_taxonomy->slug,
-			'parent' => $term_taxonomy->parent ? self::get_termdata( $term_taxonomy->parent ) : null,
+			'parent' => $term_taxonomy->parent ? self::get_termdata( $term_taxonomy->parent, $include_acf ) : null,
 			'uri'    => $to,
 			'to'     => $to,
 		);
+
+		if ( $include_acf && function_exists( 'get_fields' ) ) {
+			$data['acf'] = ( new AcfUtils() )->get_data_by_id( $term_taxonomy->taxonomy . '_' . $term_taxonomy->term_id );
+		}
+
+		return $data;
 	}
 
 	public static function get_post_types() {
