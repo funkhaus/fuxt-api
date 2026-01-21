@@ -122,6 +122,10 @@ class REST_Menu_Controller {
 							'type' => 'object',
 						),
 					),
+					'acf'         => array(
+						'description' => __( 'ACF custom fields for this menu item.', 'fuxt-api' ),
+						'type'        => array( 'object', 'null' ),
+					),
 				),
 			),
 		);
@@ -237,6 +241,14 @@ class REST_Menu_Controller {
 		}
 
 		$menu_data['children'] = array();
+
+		// Add ACF fields if available
+		if ( function_exists( 'get_fields' ) ) {
+			$acf_fields = get_fields( $menu_item->ID );
+			if ( $acf_fields ) {
+				$menu_data['acf'] = $acf_fields;
+			}
+		}
 
 		return $menu_data;
 	}
