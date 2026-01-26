@@ -42,7 +42,7 @@ class Block {
 	 * @param \WP_Block_Parser_Block $block Parsed block object.
 	 * @param \WP_Post               $post  Post object.
 	 *
-	 * @return array|null [blockName => '', attrs => [], innterHtml => '', innerBlocks => [], 'embed' => []]
+	 * @return array|null [blockName => '', attrs => [], innerHtml => '', innerBlocks => [], 'embed' => []]
 	 *
 	 */
 	private static function extend_block( $block, $post ) {
@@ -51,7 +51,7 @@ class Block {
 			$rendered_block = '';
 			try {
 				$rendered_block = render_block( $block );
-			} catch ( \Exception $e ) {
+			} catch ( \Exception | \Error $e ) {
 				$rendered_block = $block['innerHTML'] ?? '';
 			}
 
@@ -90,8 +90,14 @@ class Block {
 			}
 
 			if ( strpos( $block['blockName'], 'acf/' ) === 0 ) {
-				// Check if ACF functions exist before calling them
-				if ( function_exists( 'acf_get_block_id' ) && function_exists( 'acf_prepare_block' ) ) {
+				// Check if all required ACF functions exist before calling them
+				if (
+					function_exists( 'acf_get_block_id' ) &&
+					function_exists( 'acf_prepare_block' ) &&
+					function_exists( 'acf_ensure_block_id_prefix' ) &&
+					function_exists( 'acf_setup_meta' ) &&
+					function_exists( 'get_field_objects' )
+				) {
 					$attributes = $block['attrs'];
 
 					// Generate block id.
@@ -125,15 +131,8 @@ class Block {
 
 			return apply_filters( 'fuxt_extend_block', $extended_block );
 
-		} catch ( \Exception $e ) {
+		} catch ( \Exception | \Error $e ) {
 			// Return a safe fallback for problematic blocks
-			return array(
-				'block_name' => $block['blockName'],
-				'attrs'      => $block['attrs'] ?? array(),
-				'inner_html' => $block['innerHTML'] ?? '',
-			);
-		} catch ( \Error $e ) {
-			// Catch PHP errors (like TypeError) as well
 			return array(
 				'block_name' => $block['blockName'],
 				'attrs'      => $block['attrs'] ?? array(),
@@ -277,11 +276,8 @@ class Block {
 
 			return array_combine( array_map( array( Utils::class, 'decamelize' ), array_keys( $block_attributes ) ), array_values( $block_attributes ) );
 
-		} catch ( \Exception $e ) {
+		} catch ( \Exception | \Error $e ) {
 			// Return raw attributes on error
-			return $block['attrs'] ?? array();
-		} catch ( \Error $e ) {
-			// Catch PHP errors as well
 			return $block['attrs'] ?? array();
 		}
 	}
@@ -323,9 +319,7 @@ class Block {
 			libxml_clear_errors();
 
 			return $dom;
-		} catch ( \Exception $e ) {
-			return null;
-		} catch ( \Error $e ) {
+		} catch ( \Exception | \Error $e ) {
 			return null;
 		}
 	}
@@ -364,9 +358,7 @@ class Block {
 			}
 
 			return $inner_html;
-		} catch ( \Exception $e ) {
-			return $html;
-		} catch ( \Error $e ) {
+		} catch ( \Exception | \Error $e ) {
 			return $html;
 		}
 	}
