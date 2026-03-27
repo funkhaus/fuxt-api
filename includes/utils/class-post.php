@@ -181,13 +181,25 @@ class Post {
 			}
 
 			if ( in_array( 'next', $additional_fields ) ) {
-				$next_post    = self::get_next_prev_post( $post, true, true );
-				$data['next'] = $next_post ? self::get_postdata( $next_post, $inherit_fields ) : null;
+				$next_post  = self::get_next_prev_post( $post, true, true );
+				$next_depth = isset( $params['next_depth'] ) ? max( 1, (int) $params['next_depth'] ) : 1;
+				$next_fields = $inherit_fields;
+				if ( $next_depth > 1 ) {
+					$next_fields[] = 'next';
+				}
+				$next_params = array_merge( $params, array( 'next_depth' => $next_depth - 1 ) );
+				$data['next'] = $next_post ? self::get_postdata( $next_post, $next_fields, $next_params ) : null;
 			}
 
 			if ( in_array( 'prev', $additional_fields ) ) {
-				$prev_post    = self::get_next_prev_post( $post, false, true );
-				$data['prev'] = $prev_post ? self::get_postdata( $prev_post, $inherit_fields ) : null;
+				$prev_post  = self::get_next_prev_post( $post, false, true );
+				$prev_depth = isset( $params['prev_depth'] ) ? max( 1, (int) $params['prev_depth'] ) : 1;
+				$prev_fields = $inherit_fields;
+				if ( $prev_depth > 1 ) {
+					$prev_fields[] = 'prev';
+				}
+				$prev_params = array_merge( $params, array( 'prev_depth' => $prev_depth - 1 ) );
+				$data['prev'] = $prev_post ? self::get_postdata( $prev_post, $prev_fields, $prev_params ) : null;
 			}
 		}
 
@@ -401,10 +413,33 @@ class Post {
 		$posts_query = new \WP_Query();
 		$posts       = $posts_query->query( $query_params );
 
-		$post_list = array();
+		$post_list   = array();
+		$post_params = array();
+
+		if ( in_array( 'children', $additional_fields, true ) ) {
+			$post_params['depth'] = isset( $params['depth'] ) ? (int) $params['depth'] : 1;
+			if ( isset( $params['per_page'] ) ) {
+				$post_params['per_page'] = $params['per_page'];
+			}
+			if ( isset( $params['page'] ) ) {
+				$post_params['page'] = $params['page'];
+			}
+		}
+
+		if ( in_array( 'acf', $additional_fields, true ) ) {
+			$post_params['acf_depth'] = isset( $params['acf_depth'] ) ? (int) $params['acf_depth'] : 2;
+		}
+
+		if ( in_array( 'next', $additional_fields, true ) && isset( $params['next_depth'] ) ) {
+			$post_params['next_depth'] = (int) $params['next_depth'];
+		}
+
+		if ( in_array( 'prev', $additional_fields, true ) && isset( $params['prev_depth'] ) ) {
+			$post_params['prev_depth'] = (int) $params['prev_depth'];
+		}
 
 		foreach ( $posts as $post ) {
-			$post_data = self::get_postdata( $post, $additional_fields );
+			$post_data = self::get_postdata( $post, $additional_fields, $post_params );
 			if ( isset( $post_data['children'] ) ) {
 				$children              = $post_data['children'];
 				$post_data['children'] = $children['list'];

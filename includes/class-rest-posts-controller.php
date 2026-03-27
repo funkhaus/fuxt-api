@@ -143,6 +143,22 @@ class REST_Posts_Controller {
 					),
 				),
 			),
+			'depth'           => array(
+				'description' => __( 'Children depth when `children` field is requested.', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
+			'acf_depth'       => array(
+				'description' => __( 'ACF field depth when `acf` field is requested.', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
+			'next_depth'      => array(
+				'description' => __( 'Nested `next` depth when `next` field is requested.', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
+			'prev_depth'      => array(
+				'description' => __( 'Nested `prev` depth when `prev` field is requested.', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
 		);
 	}
 
