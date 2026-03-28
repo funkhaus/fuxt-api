@@ -342,24 +342,46 @@ class Post {
 		}
 
 		if ( ! empty( $params['term_slug'] ) ) {
+			// If post_type is specified, limit taxonomy search to those registered for those post types.
+			if ( isset( $params['post_type'] ) ) {
+				$requested_types       = array_map( 'trim', explode( ',', $params['post_type'] ) );
+				$searchable_taxonomies = array_unique( array_merge( ...array_map( 'get_object_taxonomies', $requested_types ) ) );
+			} else {
+				$searchable_taxonomies = get_taxonomies();
+			}
+
+			$term_slugs = array_map( 'trim', explode( ',', $params['term_slug'] ) );
+
 			$terms = get_terms(
 				array(
-					'taxonomy' => get_taxonomies(),
-					'slug'     => $params['term_slug'],
+					'taxonomy' => $searchable_taxonomies,
+					'slug'     => $term_slugs,
 				)
 			);
 
 			if ( ! empty( $terms ) ) {
-				$query_params['tax_query'] = array(
-					array(
-						'taxonomy' => $terms[0]->taxonomy,
-						'field'    => 'slug',
-						'terms'    => $terms[0]->slug,
-					),
-				);
+				// Group matched terms by taxonomy, then build one tax_query clause per taxonomy (OR relation).
+				$by_taxonomy = array();
+				foreach ( $terms as $term ) {
+					$by_taxonomy[ $term->taxonomy ][] = $term->slug;
+				}
 
-				$taxonomy                  = get_taxonomy( $terms[0]->taxonomy );
-				$query_params['post_type'] = $taxonomy->object_type;
+				$tax_query = array( 'relation' => 'OR' );
+				foreach ( $by_taxonomy as $taxonomy => $slugs ) {
+					$tax_query[] = array(
+						'taxonomy' => $taxonomy,
+						'field'    => 'slug',
+						'terms'    => $slugs,
+						'operator' => 'IN',
+					);
+				}
+				$query_params['tax_query'] = $tax_query;
+
+				// Only infer post_type from taxonomy if not explicitly provided.
+				if ( ! isset( $params['post_type'] ) ) {
+					$taxonomy                  = get_taxonomy( array_key_first( $by_taxonomy ) );
+					$query_params['post_type'] = $taxonomy->object_type;
+				}
 
 				// Default order is menu_order for hierarchical post types such as page.
 				if ( is_post_type_hierarchical( $parent_post->post_type ) ) {
@@ -373,10 +395,17 @@ class Post {
 
 		if ( ! isset( $query_params['post_type'] ) ) {
 			if ( isset( $params['post_type'] ) ) {
-				if ( ! in_array( $params['post_type'], Utils::get_post_types() ) ) {
+				$requested_types  = array_map( 'trim', explode( ',', $params['post_type'] ) );
+				$valid_types      = Utils::get_post_types();
+				$validated_types  = array_filter( $requested_types, fn( $t ) => in_array( $t, $valid_types ) );
+
+				if ( empty( $validated_types ) ) {
 					return null;
 				}
-				$query_params['post_type'] = $params['post_type'];
+
+				$query_params['post_type'] = count( $validated_types ) === 1
+					? reset( $validated_types )
+					: array_values( $validated_types );
 			} else {
 				$query_params['post_type'] = 'post';
 			}

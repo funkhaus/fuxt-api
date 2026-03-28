@@ -122,9 +122,8 @@ class REST_Posts_Controller {
 				'type'        => 'integer',
 			),
 			'post_type'       => array(
-				'description' => __( 'Post type', 'fuxt-api' ),
+				'description' => __( 'Post type, or comma-separated list of post types', 'fuxt-api' ),
 				'type'        => 'string',
-				'enum'        => Utils::get_post_types(),
 			),
 			'fields'          => array(
 				'description' => __( 'Additional fields to return. Comma separated string of fields.', 'fuxt-api' ),
