@@ -108,6 +108,14 @@ class REST_Post_Controller {
 				'description' => __( 'ACF field depth value.', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
+			'next_depth'   => array(
+				'description' => __( 'When `next` is requested, how many sibling posts to follow forward (nested `next.next.next…`). Default is 1 (single next).', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
+			'prev_depth'   => array(
+				'description' => __( 'When `prev` is requested, how many sibling posts to follow backward (nested `prev.prev…`). Default is 1 (single prev).', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
 		);
 	}
 
@@ -377,6 +385,14 @@ class REST_Post_Controller {
 
 		if ( in_array( 'acf', $additional_fields ) ) {
 			$params['acf_depth'] = $request['acf_depth'] ?? 2; // Depth 2 by default.
+		}
+
+		if ( in_array( 'next', $additional_fields ) && isset( $request['next_depth'] ) ) {
+			$params['next_depth'] = (int) $request['next_depth'];
+		}
+
+		if ( in_array( 'prev', $additional_fields ) && isset( $request['prev_depth'] ) ) {
+			$params['prev_depth'] = (int) $request['prev_depth'];
 		}
 
 		$post     = PostUtils::get_postdata( $post, $additional_fields, $params );
