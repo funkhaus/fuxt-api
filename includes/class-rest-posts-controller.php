@@ -97,6 +97,7 @@ class REST_Posts_Controller {
 					'include',
 					'modified',
 					'parent',
+					'rand',
 					'relevance',
 					'slug',
 					'include_slugs',
@@ -184,6 +185,12 @@ class REST_Posts_Controller {
 
 		$response->header( 'X-WP-Total', (int) $posts['total'] );
 		$response->header( 'X-WP-TotalPages', (int) $posts['total_pages'] );
+
+		// Random order must not be cached or every client sees the same "shuffle".
+		if ( isset( $request['orderby'] ) && 'rand' === $request['orderby'] ) {
+			$response->header( 'Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0' );
+			$response->header( 'Pragma', 'no-cache' );
+		}
 
 		return $response;
 	}
