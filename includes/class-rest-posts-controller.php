@@ -122,6 +122,14 @@ class REST_Posts_Controller {
 				'description' => __( 'Page number', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
+			'paged'           => array(
+				'description' => __( 'Alias of page. Added for WordPress convention', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
+			'offset'          => array(
+				'description' => __( 'Offset', 'fuxt-api' ),
+				'type'        => 'integer',
+			),
 			'post_type'       => array(
 				'description' => __( 'Post type', 'fuxt-api' ),
 				'type'        => 'string',
