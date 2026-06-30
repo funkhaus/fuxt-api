@@ -120,9 +120,9 @@ class REST_Countries_Controller {
 			],
 			'per_page' => [
 				'type'    => 'integer',
-				'default' => 100,
+				'default' => 300, // high enough to return every country in one request
 				'minimum' => 1,
-				'maximum' => 200, // cap to keep memory down
+				'maximum' => 300,
 			],
 		];
 	}
@@ -135,10 +135,11 @@ class REST_Countries_Controller {
 	 */
 	public function get_items( $request ) {
 		$page     = max( 1, (int) ( $request['page'] ?? 1 ) );
-		$per_page = min( 50, max( 1, (int) ( $request['per_page'] ?? 25 ) ) );
+		$per_page = min( 300, max( 1, (int) ( $request['per_page'] ?? 300 ) ) ); // return all countries by default
 
 		$q = new \WP_Query( [
 			'post_type'              => 'country',
+			'post_status'            => 'publish', // public endpoint: never expose drafts/pending/private
 			'posts_per_page'         => $per_page,
 			'paged'                  => $page,
 			'no_found_rows'          => true,   // skip total counting (saves memory)

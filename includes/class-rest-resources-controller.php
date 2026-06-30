@@ -154,6 +154,7 @@ class REST_Resources_Controller {
 
 		$query_args = [
 			'post_type'              => 'resource',
+			'post_status'            => 'publish', // public endpoint: never expose drafts/pending/private
 			'posts_per_page'         => $per_page,
 			'paged'                  => $page,
 			'no_found_rows'          => true,
