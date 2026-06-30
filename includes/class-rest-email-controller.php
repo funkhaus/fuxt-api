@@ -29,9 +29,6 @@ class REST_Email_Controller {
 	 * Register email endpoint.
 	 */
 	public function register_endpoint() {
-		// Debug: Log that we're registering the endpoint
-		error_log( 'Fuxt API: Registering POST-only email endpoint at ' . self::REST_NAMESPACE . self::ROUTE );
-		
 		register_rest_route(
 			self::REST_NAMESPACE,
 			self::ROUTE,
@@ -217,6 +214,31 @@ class REST_Email_Controller {
 				'rest_email_spam_trap_failed',
 				__( 'Spam trap validation failed. Email not sent.', 'fuxt-api' ),
 				array( 'status' => 400 )
+			);
+		}
+
+		// Recipient allowlist. Empty by default — an empty allowlist disables the
+		// endpoint, so the base plugin ships safe (no config = no sending, and no
+		// open relay). Projects opt in by adding recipients via the
+		// 'fuxt_api_email_allowed_recipients' filter (e.g. from a settings field).
+		$allowed_recipients = array_filter( array_map(
+			'sanitize_email',
+			(array) apply_filters( 'fuxt_api_email_allowed_recipients', array() )
+		) );
+
+		if ( empty( $allowed_recipients ) ) {
+			return new \WP_Error(
+				'rest_email_not_configured',
+				__( 'Email sending is not configured.', 'fuxt-api' ),
+				array( 'status' => 503 )
+			);
+		}
+
+		if ( ! in_array( $to, $allowed_recipients, true ) ) {
+			return new \WP_Error(
+				'rest_email_recipient_not_allowed',
+				__( 'This recipient is not permitted.', 'fuxt-api' ),
+				array( 'status' => 403 )
 			);
 		}
 
