@@ -513,7 +513,7 @@ class REST_Post_Controller {
 			return true;
 		}
 
-		if ( 'draft' === $post->post_status ) {
+		if ( in_array( $post->post_status, array( 'draft', 'pending' ), true ) ) {
 			$user_id = apply_filters( 'determine_current_user', false );
 			if ( ! empty( $user_id ) ) {
 				return PostUtils::can_user_read_post( $user_id, $post->ID );

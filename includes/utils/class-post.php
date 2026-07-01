@@ -316,13 +316,13 @@ class Post {
 			return false;
 		}
 
-		// Check if the post exists and is a draft
-		if ( $post->post_status === 'draft' ) {
-			// Check if the user is the author of the post or have permission.
+		// Draft and pending posts are previewable by their author, or by users
+		// who can read private posts (editors/admins).
+		if ( in_array( $post->post_status, array( 'draft', 'pending' ), true ) ) {
 			return $post->post_author === $user_id || user_can( $user_id, 'read_private_posts' );
 		}
 
-		// Post is not a draft or doesn't exist
+		// Otherwise, only published posts are readable.
 		return $post->post_status === 'publish';
 	}
 
@@ -520,7 +520,7 @@ class Post {
 					}
 
 					$post_status_obj = get_post_status_object( $page->post_status );
-					if ( $page->post_status !== 'draft' && ! $post_status_obj->public && ! $post_status_obj->protected
+					if ( $page->post_status !== 'draft' && $page->post_status !== 'pending' && ! $post_status_obj->public && ! $post_status_obj->protected
 						&& ! $post_status_obj->private && $post_status_obj->exclude_from_search ) {
 						continue;
 					}
@@ -555,6 +555,7 @@ class Post {
 				$query['post_status'] = array(
 					'publish',
 					'draft',
+					'pending',
 				);
 
 				// Do the query.
