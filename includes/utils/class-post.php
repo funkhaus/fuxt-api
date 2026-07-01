@@ -485,7 +485,7 @@ class Post {
 					}
 
 					$post_status_obj = get_post_status_object( $page->post_status );
-					if ( $page->post_status !== 'draft' && ! $post_status_obj->public && ! $post_status_obj->protected
+					if ( $page->post_status !== 'draft' && $page->post_status !== 'pending' && ! $post_status_obj->public && ! $post_status_obj->protected
 						&& ! $post_status_obj->private && $post_status_obj->exclude_from_search ) {
 						continue;
 					}
@@ -520,6 +520,7 @@ class Post {
 				$query['post_status'] = array(
 					'publish',
 					'draft',
+					'pending',
 				);
 
 				// Do the query.
