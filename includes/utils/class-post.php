@@ -316,13 +316,13 @@ class Post {
 			return false;
 		}
 
-		// Check if the post exists and is a draft
-		if ( $post->post_status === 'draft' ) {
-			// Check if the user is the author of the post or have permission.
+		// Draft and pending posts are previewable by their author, or by users
+		// who can read private posts (editors/admins).
+		if ( in_array( $post->post_status, array( 'draft', 'pending' ), true ) ) {
 			return $post->post_author === $user_id || user_can( $user_id, 'read_private_posts' );
 		}
 
-		// Post is not a draft or doesn't exist
+		// Otherwise, only published posts are readable.
 		return $post->post_status === 'publish';
 	}
 
