@@ -145,6 +145,7 @@ class REST_Posts_Controller {
 						'ancestors',
 						'next',
 						'prev',
+						'seo',
 					),
 				),
 			),
@@ -227,6 +228,7 @@ class REST_Posts_Controller {
 			'ancestors',
 			'next',
 			'prev',
+			'seo',
 		);
 
 		// Trim off outside whitespace from the comma delimited list.

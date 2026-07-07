@@ -72,6 +72,10 @@ class Post {
 				}
 			}
 
+			if ( in_array( 'seo', $additional_fields ) ) {
+				$data['seo'] = self::get_seodata( $post );
+			}
+
 			// Inherit additional fields for siblings, parent, children, next, prev post.
 			$inherit_fields = array_intersect(
 				$additional_fields,
@@ -204,6 +208,44 @@ class Post {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Get Yoast SEO meta data for a post.
+	 *
+	 * Uses the Yoast SEO surface API. Returns null when Yoast SEO is not active
+	 * or has no meta for the post.
+	 *
+	 * @param \WP_Post $post Post object.
+	 *
+	 * @return array|null
+	 */
+	private static function get_seodata( $post ) {
+		if ( ! function_exists( 'YoastSEO' ) ) {
+			return null;
+		}
+
+		$meta = YoastSEO()->meta->for_post( $post->ID );
+
+		if ( ! $meta ) {
+			return null;
+		}
+
+		$json = json_decode( wp_json_encode( $meta->get_head()->json ), true );
+
+		if ( ! is_array( $json ) ) {
+			return null;
+		}
+
+		// Ship schema as a JSON string so JSON-LD keys (@context, @graph) survive client-side key transforms.
+		if ( isset( $json['schema'] ) ) {
+			$json['schema'] = wp_json_encode( $json['schema'] );
+		}
+
+		// Keyed by human-readable labels, which key transforms would mangle.
+		unset( $json['twitter_misc'] );
+
+		return $json;
 	}
 
 	/**
