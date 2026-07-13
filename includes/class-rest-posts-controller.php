@@ -122,6 +122,12 @@ class REST_Posts_Controller {
 				'description' => __( 'Page number', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
+			'include'         => array(
+				'description'       => __( 'Limit result set to specific post IDs (comma separated). Spans all exposed post types unless post_type is given; results preserve the given ID order.', 'fuxt-api' ),
+				'type'              => 'array',
+				'items'             => array( 'type' => 'integer' ),
+				'sanitize_callback' => 'wp_parse_id_list',
+			),
 			'post_type'       => array(
 				'description' => __( 'Post type', 'fuxt-api' ),
 				'type'        => 'string',

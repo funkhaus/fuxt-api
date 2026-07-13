@@ -389,6 +389,9 @@ class Post {
 					return null;
 				}
 				$query_params['post_type'] = $params['post_type'];
+			} elseif ( ! empty( $params['include'] ) ) {
+				// ID lookups span every exposed post type by default.
+				$query_params['post_type'] = array_values( Utils::get_post_types() );
 			} else {
 				$query_params['post_type'] = 'post';
 			}
@@ -408,6 +411,25 @@ class Post {
 
 		if ( isset( $params['order'] ) ) {
 			$query_params['order'] = $params['order'];
+		}
+
+		if ( ! empty( $params['include'] ) ) {
+			$include_ids = array_slice( array_filter( wp_parse_id_list( $params['include'] ) ), 0, 100 );
+
+			if ( empty( $include_ids ) ) {
+				return null;
+			}
+
+			$query_params['post__in']            = $include_ids;
+			$query_params['posts_per_page']      = count( $include_ids );
+			$query_params['ignore_sticky_posts'] = true;
+			$query_params['post_status']         = 'publish';
+
+			// Preserve requested ID order unless the caller explicitly set an orderby.
+			$explicit_params = $params instanceof \WP_REST_Request ? $params->get_query_params() : array();
+			if ( ! isset( $explicit_params['orderby'] ) ) {
+				$query_params['orderby'] = 'post__in';
+			}
 		}
 
 		$posts_query = new \WP_Query();
