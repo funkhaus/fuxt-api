@@ -360,18 +360,24 @@ class REST_Project_Images_Controller {
 				array( 'status' => 400 )
 			);
 		}
-		$mime = $file['type'];
-		if ( ! in_array( $mime, self::ALLOWED_MIME_TYPES, true ) ) {
-			return new \WP_Error(
-				'fuxt_rest_project_images_invalid_type',
-				__( 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP.', 'fuxt-api' ),
-				array( 'status' => 400 )
-			);
-		}
-		if ( (int) $file['size'] > self::MAX_FILE_SIZE_BYTES ) {
+		// Check real file size on disk -- the client-supplied $file['size'] is untrusted.
+		$actual_size = filesize( $file['tmp_name'] );
+		if ( false === $actual_size || $actual_size > self::MAX_FILE_SIZE_BYTES ) {
 			return new \WP_Error(
 				'fuxt_rest_project_images_too_large',
 				__( 'File too large. Maximum 5 MB.', 'fuxt-api' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Verify the file is actually a readable image of an allowed type --
+		// the client-supplied MIME type/extension can be spoofed, so this
+		// re-checks the real file contents instead of trusting $file['type'].
+		$image_info = @getimagesize( $file['tmp_name'] );
+		if ( false === $image_info || empty( $image_info['mime'] ) || ! in_array( $image_info['mime'], self::ALLOWED_MIME_TYPES, true ) ) {
+			return new \WP_Error(
+				'fuxt_rest_project_images_invalid_type',
+				__( 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP.', 'fuxt-api' ),
 				array( 'status' => 400 )
 			);
 		}
