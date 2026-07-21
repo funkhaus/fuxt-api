@@ -83,7 +83,21 @@ class REST_Posts_Controller {
 				'type'        => 'string',
 			),
 			'term_slug'       => array(
-				'description' => __( 'Terms slug', 'fuxt-api' ),
+				'description' => __( 'Term slug(s). Comma-separated for multiple.', 'fuxt-api' ),
+				'type'        => 'string',
+			),
+			'taxonomy'        => array(
+				'description' => __( 'Limit term_slug lookups to specific taxonomies (comma separated). Needed when a slug exists in multiple taxonomies.', 'fuxt-api' ),
+				'type'        => 'string',
+			),
+			'term_operator'   => array(
+				'description' => __( 'How multiple term_slug values within one taxonomy combine: IN (any) or AND (all).', 'fuxt-api' ),
+				'type'        => 'string',
+				'default'     => 'IN',
+				'enum'        => array( 'IN', 'AND' ),
+			),
+			'priority_term_slug' => array(
+				'description' => __( 'Terms slug used for priority ordering. Matching posts are returned first, then remaining posts that match all other filters.', 'fuxt-api' ),
 				'type'        => 'string',
 			),
 			'orderby'         => array(
@@ -121,6 +135,12 @@ class REST_Posts_Controller {
 			'page'            => array(
 				'description' => __( 'Page number', 'fuxt-api' ),
 				'type'        => 'integer',
+			),
+			'include'         => array(
+				'description'       => __( 'Limit result set to specific post IDs (comma separated). Spans all exposed post types unless post_type is given; results preserve the given ID order.', 'fuxt-api' ),
+				'type'              => 'array',
+				'items'             => array( 'type' => 'integer' ),
+				'sanitize_callback' => 'wp_parse_id_list',
 			),
 			'post_type'       => array(
 				'description' => __( 'Post type', 'fuxt-api' ),
