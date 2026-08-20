@@ -86,6 +86,10 @@ class REST_Posts_Controller {
 				'description' => __( 'Terms slug', 'fuxt-api' ),
 				'type'        => 'string',
 			),
+			'priority_term_slug' => array(
+				'description' => __( 'Terms slug used for priority ordering. Matching posts are returned first, then remaining posts that match all other filters.', 'fuxt-api' ),
+				'type'        => 'string',
+			),
 			'orderby'         => array(
 				'description' => __( 'orderby', 'fuxt-api' ),
 				'type'        => 'string',
