@@ -7,6 +7,7 @@
 
 namespace FuxtApi;
 
+use FuxtApi\Utils\Acf as AcfUtils;
 use FuxtApi\Utils\Utils;
 
 /**
@@ -242,11 +243,14 @@ class REST_Menu_Controller {
 
 		$menu_data['children'] = array();
 
-		// Add ACF fields if available
-		if ( function_exists( 'get_fields' ) ) {
-			$acf_fields = get_fields( $menu_item->ID );
-			if ( $acf_fields ) {
-				$menu_data['acf'] = $acf_fields;
+		// Same ACF pipeline as Post::get_postdata (image → Utils::get_imagedata, groups/repeaters, etc.).
+		if ( function_exists( 'get_field_objects' ) ) {
+			$inherit_fields = array( 'acf', 'terms' );
+			$acf_depth      = 1; // matches default post request acf_depth=2 → AcfUtils gets depth 1.
+			$acf_utils      = new AcfUtils( $inherit_fields, array( 'acf_depth' => $acf_depth ) );
+			$acf_data       = $acf_utils->get_data_by_id( $menu_item->ID );
+			if ( ! empty( $acf_data ) ) {
+				$menu_data['acf'] = $acf_data;
 			}
 		}
 

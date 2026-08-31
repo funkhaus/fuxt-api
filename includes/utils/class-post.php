@@ -329,12 +329,15 @@ class Post {
 	/**
 	 * Get posts.
 	 *
-	 * @param \WP_REST_Request $params Parameters
+	 * @param \WP_REST_Request $params          Parameters.
+	 * @param array            $additional_fields Additional fields.
+	 * @param array            $query_options   Optional query options.
 	 *
-	 * @return array
+	 * @return array|null
 	 */
-	public static function get_posts( $params, $additional_fields ) {
+	public static function get_posts( $params, $additional_fields, $query_options = array() ) {
 		$query_params = array();
+		$parent_post  = null;
 
 		if ( isset( $params['post_parent_uri'] ) ) {
 			$parent_post = self::get_post_by_uri( $params['post_parent_uri'] );
@@ -354,41 +357,144 @@ class Post {
 		}
 
 		if ( ! empty( $params['term_slug'] ) ) {
+			if ( isset( $params['post_type'] ) ) {
+				$requested_types = array_map( 'trim', explode( ',', $params['post_type'] ) );
+				$valid_types     = Utils::get_post_types();
+				$validated_types = array_values( array_filter( $requested_types, fn( $t ) => in_array( $t, $valid_types, true ) ) );
+				if ( empty( $validated_types ) ) {
+					return null;
+				}
+				$searchable_taxonomies = array_unique( array_merge( ...array_map( 'get_object_taxonomies', $validated_types ) ) );
+			} else {
+				$searchable_taxonomies = get_taxonomies();
+			}
+
+			$term_slugs = array_values(
+				array_unique(
+					array_filter( array_map( 'trim', explode( ',', $params['term_slug'] ) ) )
+				)
+			);
+			if ( empty( $term_slugs ) ) {
+				return null;
+			}
+
 			$terms = get_terms(
 				array(
-					'taxonomy' => get_taxonomies(),
-					'slug'     => $params['term_slug'],
+					'taxonomy'   => $searchable_taxonomies,
+					'slug'       => $term_slugs,
+					'hide_empty' => false,
 				)
 			);
 
-			if ( ! empty( $terms ) ) {
-				$query_params['tax_query'] = array(
-					array(
-						'taxonomy' => $terms[0]->taxonomy,
-						'field'    => 'slug',
-						'terms'    => $terms[0]->slug,
-					),
-				);
-
-				$taxonomy                  = get_taxonomy( $terms[0]->taxonomy );
-				$query_params['post_type'] = $taxonomy->object_type;
-
-				// Default order is menu_order for hierarchical post types such as page.
-				if ( is_post_type_hierarchical( $parent_post->post_type ) ) {
-					$query_params['orderby'] = 'menu_order';
-					$query_params['order']   = 'ASC';
-				}
-			} else {
+			if ( is_wp_error( $terms ) || empty( $terms ) ) {
 				return null;
+			}
+
+			$by_taxonomy = array();
+			foreach ( $terms as $term ) {
+				$by_taxonomy[ $term->taxonomy ][] = $term->slug;
+			}
+
+			$clauses = array();
+			foreach ( $by_taxonomy as $taxonomy => $slugs ) {
+				$clauses[] = array(
+					'taxonomy' => $taxonomy,
+					'field'    => 'slug',
+					'terms'    => array_values( array_unique( $slugs ) ),
+					'operator' => 'IN',
+				);
+			}
+
+			if ( count( $clauses ) > 1 ) {
+				$query_params['tax_query'] = array_merge(
+					array( 'relation' => 'AND' ),
+					$clauses
+				);
+			} else {
+				$query_params['tax_query'] = $clauses;
+			}
+
+			if ( ! isset( $params['post_type'] ) ) {
+				$taxonomy_obj = get_taxonomy( array_key_first( $by_taxonomy ) );
+				if ( $taxonomy_obj && ! empty( $taxonomy_obj->object_type ) ) {
+					$query_params['post_type'] = count( $taxonomy_obj->object_type ) === 1
+						? reset( $taxonomy_obj->object_type )
+						: array_values( $taxonomy_obj->object_type );
+				} else {
+					$query_params['post_type'] = 'post';
+				}
+			}
+
+			if ( $parent_post instanceof \WP_Post && is_post_type_hierarchical( $parent_post->post_type ) ) {
+				$query_params['orderby'] = 'menu_order';
+				$query_params['order']   = 'ASC';
+			}
+		}
+
+		$priority_by_taxonomy = array();
+		if ( ! empty( $params['priority_term_slug'] ) ) {
+			$priority_post_type = null;
+			if ( isset( $params['post_type'] ) ) {
+				$priority_post_type = $params['post_type'];
+			} elseif ( isset( $query_params['post_type'] ) ) {
+				$priority_post_type = is_array( $query_params['post_type'] )
+					? implode( ',', $query_params['post_type'] )
+					: $query_params['post_type'];
+			}
+
+			if ( null !== $priority_post_type ) {
+				$requested_types = array_map( 'trim', explode( ',', (string) $priority_post_type ) );
+				$valid_types     = Utils::get_post_types();
+				$validated_types = array_values( array_filter( $requested_types, fn( $t ) => in_array( $t, $valid_types, true ) ) );
+				if ( empty( $validated_types ) ) {
+					return null;
+				}
+				$searchable_taxonomies = array_unique( array_merge( ...array_map( 'get_object_taxonomies', $validated_types ) ) );
+			} else {
+				$searchable_taxonomies = get_taxonomies();
+			}
+
+			$priority_slugs = array_values(
+				array_unique(
+					array_filter( array_map( 'trim', explode( ',', $params['priority_term_slug'] ) ) )
+				)
+			);
+			if ( empty( $priority_slugs ) ) {
+				return null;
+			}
+
+			$priority_terms = get_terms(
+				array(
+					'taxonomy'   => $searchable_taxonomies,
+					'slug'       => $priority_slugs,
+					'hide_empty' => false,
+				)
+			);
+			if ( is_wp_error( $priority_terms ) || empty( $priority_terms ) ) {
+				return null;
+			}
+
+			foreach ( $priority_terms as $priority_term ) {
+				$priority_by_taxonomy[ $priority_term->taxonomy ][] = $priority_term->slug;
+			}
+			foreach ( $priority_by_taxonomy as $taxonomy => $slugs ) {
+				$priority_by_taxonomy[ $taxonomy ] = array_values( array_unique( $slugs ) );
 			}
 		}
 
 		if ( ! isset( $query_params['post_type'] ) ) {
 			if ( isset( $params['post_type'] ) ) {
-				if ( ! in_array( $params['post_type'], Utils::get_post_types() ) ) {
+				$requested_types  = array_map( 'trim', explode( ',', $params['post_type'] ) );
+				$valid_types      = Utils::get_post_types();
+				$validated_types  = array_filter( $requested_types, fn( $t ) => in_array( $t, $valid_types ) );
+
+				if ( empty( $validated_types ) ) {
 					return null;
 				}
-				$query_params['post_type'] = $params['post_type'];
+
+				$query_params['post_type'] = count( $validated_types ) === 1
+					? reset( $validated_types )
+					: array_values( $validated_types );
 			} else {
 				$query_params['post_type'] = 'post';
 			}
@@ -410,8 +516,79 @@ class Post {
 			$query_params['order'] = $params['order'];
 		}
 
-		$posts_query = new \WP_Query();
-		$posts       = $posts_query->query( $query_params );
+		$featured_image = isset( $query_options['featured_image'] ) ? (string) $query_options['featured_image'] : 'any';
+		if ( ! in_array( $featured_image, array( 'any', 'priority' ), true ) ) {
+			$featured_image = 'any';
+		}
+
+		$priority_term_orderby = '';
+		if ( ! empty( $priority_by_taxonomy ) ) {
+			global $wpdb;
+			$priority_taxonomy_clauses = array();
+			foreach ( $priority_by_taxonomy as $taxonomy => $slugs ) {
+				$placeholders = implode( ', ', array_fill( 0, count( $slugs ), '%s' ) );
+				$priority_taxonomy_clauses[] = $wpdb->prepare(
+					"(tt.taxonomy = %s AND t.slug IN ({$placeholders}))",
+					array_merge( array( $taxonomy ), $slugs )
+				);
+			}
+
+			if ( ! empty( $priority_taxonomy_clauses ) ) {
+				$required_taxonomy_count = count( $priority_taxonomy_clauses );
+				$priority_term_orderby   = "(CASE WHEN (SELECT COUNT(DISTINCT tt.taxonomy) FROM {$wpdb->term_relationships} tr INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id INNER JOIN {$wpdb->terms} t ON tt.term_id = t.term_id WHERE tr.object_id = {$wpdb->posts}.ID AND (" . implode( ' OR ', $priority_taxonomy_clauses ) . ")) = {$required_taxonomy_count} THEN 0 ELSE 1 END) ASC";
+			}
+		}
+
+		$priority_featured = ( 'priority' === $featured_image );
+		$join_filter       = null;
+		$orderby_filter    = null;
+		$posts_query       = new \WP_Query();
+		$alias             = 'fuxt_featimg_sort';
+
+		if ( $priority_featured ) {
+			global $wpdb;
+
+			$join_filter = static function ( $join, $query ) use ( $wpdb, $alias, $posts_query ) {
+				if ( $query !== $posts_query ) {
+					return $join;
+				}
+				$join .= " LEFT JOIN {$wpdb->postmeta} AS {$alias} ON ({$wpdb->posts}.ID = {$alias}.post_id AND {$alias}.meta_key = '_thumbnail_id') ";
+				return $join;
+			};
+			add_filter( 'posts_join', $join_filter, 10, 2 );
+		}
+
+		if ( $priority_featured || '' !== $priority_term_orderby ) {
+			$orderby_filter = static function ( $orderby, $query ) use ( $alias, $posts_query, $priority_featured, $priority_term_orderby ) {
+				if ( $query !== $posts_query ) {
+					return $orderby;
+				}
+				$pieces = array();
+				if ( $priority_featured ) {
+					$pieces[] = "(CASE WHEN {$alias}.meta_id IS NOT NULL AND {$alias}.meta_value IS NOT NULL AND {$alias}.meta_value != '' AND {$alias}.meta_value != '0' THEN 0 ELSE 1 END) ASC";
+				}
+				if ( '' !== $priority_term_orderby ) {
+					$pieces[] = $priority_term_orderby;
+				}
+
+				if ( empty( $pieces ) ) {
+					return $orderby;
+				}
+
+				$priority_orderby = implode( ', ', $pieces );
+				return $orderby ? $priority_orderby . ', ' . $orderby : $priority_orderby;
+			};
+			add_filter( 'posts_orderby', $orderby_filter, 10, 2 );
+		}
+
+		$posts = $posts_query->query( $query_params );
+
+		if ( $priority_featured && $join_filter ) {
+			remove_filter( 'posts_join', $join_filter, 10 );
+		}
+		if ( $orderby_filter ) {
+			remove_filter( 'posts_orderby', $orderby_filter, 10 );
+		}
 
 		$post_list   = array();
 		$post_params = array();
