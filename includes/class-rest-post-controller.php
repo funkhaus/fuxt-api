@@ -328,6 +328,10 @@ class REST_Post_Controller {
 					'description' => __( '(Optional by request) Previous data.' ),
 					'type'        => array( 'object', 'null' ),
 				),
+				'yoast_head_json' => array(
+					'description' => __( 'Yoast SEO head data, identical to the yoast_head_json field of the WP REST API. Omitted entirely when the Yoast SEO plugin is not active.' ),
+					'type'        => array( 'object', 'null' ),
+				)
 			),
 		);
 
