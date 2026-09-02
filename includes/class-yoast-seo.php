@@ -34,7 +34,14 @@ class Yoast_Seo {
 	 * @return mixed
 	 */
 	public function add_yoast_head( $result, $server, $request ) {
-		if ( $request->get_route() !== '/fuxt/v1/post' ) {
+		$route = '/' . REST_Post_Controller::REST_NAMESPACE . REST_Post_Controller::ROUTE;
+
+		if ( $request->get_route() !== $route ) {
+			return $result;
+		}
+
+		// Leave the response untouched when Yoast SEO is not active.
+		if ( ! function_exists( 'YoastSEO' ) ) {
 			return $result;
 		}
 
@@ -58,49 +65,48 @@ class Yoast_Seo {
 	/**
 	 * Fetch Yoast's yoast_head_json for a post.
 	 *
-	 * Uses Yoast's own REST field via an in-process request, so the shape always
-	 * matches what WP REST returns and no extra HTTP round-trip is made.
+	 * Reads Yoast's Surfaces API, which is the same source its own REST field
+	 * serialises: Yoast\WP\SEO\Routes\Yoast_Head_REST_Field resolves the value as
+	 * Meta_Surface::for_post()->get_head()->json. Reading the surface directly
+	 * returns an identical payload without dispatching an internal /wp/v2 request,
+	 * so it also works for previews: a cookie-authenticated preview request carries
+	 * no REST nonce, core therefore zeroes the current user, and a /wp/v2 subrequest
+	 * would 401 on a draft even though this endpoint authorized it.
+	 *
+	 * Unlike Yoast's REST field this ignores Yoast's `enable_headless_rest_endpoints`
+	 * option, which gates that field. fuxt exists to serve a headless frontend, so
+	 * SEO data must not depend on that toggle being switched on.
+	 *
+	 * The caller has already verified that Yoast SEO is active.
 	 *
 	 * @param int $post_id Post ID.
 	 * @return array|null Yoast head data, or null when unavailable.
 	 */
 	private function get_yoast_head_json( $post_id ) {
-		if ( ! function_exists( 'YoastSEO' ) ) {
+		$yoast = \YoastSEO();
+
+		if ( ! isset( $yoast->helpers, $yoast->meta ) ) {
 			return null;
 		}
 
-		$post = get_post( $post_id );
-
-		if ( ! $post ) {
+		/*
+		 * The same gate Yoast's REST field applies before building a head. Without it
+		 * revisions, autosaves, auto-drafts and post types excluded from indexing
+		 * would get real SEO data where WP REST returns none.
+		 */
+		if ( ! $yoast->helpers->post->is_post_indexable( $post_id ) ) {
 			return null;
 		}
 
-		$post_type_object = get_post_type_object( $post->post_type );
+		$meta = $yoast->meta->for_post( $post_id );
 
-		if ( empty( $post_type_object ) ) {
+		// for_post() returns false when the post has no indexable.
+		if ( ! $meta || ! method_exists( $meta, 'get_head' ) ) {
 			return null;
 		}
 
-		$rest_base = ! empty( $post_type_object->rest_base )
-			? $post_type_object->rest_base
-			: $post_type_object->name;
+		$head = $meta->get_head();
 
-		$request = new \WP_REST_Request(
-			'GET',
-			sprintf( '/wp/v2/%s/%d', $rest_base, $post_id )
-		);
-		$request->set_query_params( array( '_fields' => 'yoast_head_json' ) );
-
-		$response = rest_do_request( $request );
-
-		if ( $response->is_error() ) {
-			return null;
-		}
-
-		$data = $response->get_data();
-
-		return ( is_array( $data ) && isset( $data['yoast_head_json'] ) )
-			? $data['yoast_head_json']
-			: null;
+		return $head->json ?? null;
 	}
 }
