@@ -330,7 +330,7 @@ class REST_Post_Controller {
 					'type'        => array( 'object', 'null' ),
 				),
 				'seo'            => array(
-					'description' => __( '(Optional by request) Yoast SEO meta data. Null when the Yoast SEO plugin is not active. The `schema` property is a JSON-LD string.' ),
+					'description' => __( '(Optional by request) Yoast SEO head data, identical to the yoast_head_json field of the WP REST API. Null when the Yoast SEO plugin is not active or the post is a revision, autosave or auto-draft.' ),
 					'type'        => array( 'object', 'null' ),
 				),
 			),
