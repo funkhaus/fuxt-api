@@ -85,6 +85,7 @@ class REST_Post_Controller {
 						'ancestors',
 						'next',
 						'prev',
+						'seo',
 					),
 				),
 			),
@@ -328,6 +329,10 @@ class REST_Post_Controller {
 					'description' => __( '(Optional by request) Previous data.' ),
 					'type'        => array( 'object', 'null' ),
 				),
+				'seo'            => array(
+					'description' => __( '(Optional by request) Yoast SEO head data, identical to the yoast_head_json field of the WP REST API. Null when the Yoast SEO plugin is not active or the post is a revision, autosave or auto-draft.' ),
+					'type'        => array( 'object', 'null' ),
+				),
 			),
 		);
 
@@ -442,6 +447,7 @@ class REST_Post_Controller {
 			'next',
 			'prev',
 			'depth',
+			'seo',
 		);
 
 		// Trim off outside whitespace from the comma delimited list.

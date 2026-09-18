@@ -72,6 +72,10 @@ class Post {
 				}
 			}
 
+			if ( in_array( 'seo', $additional_fields ) ) {
+				$data['seo'] = self::get_seodata( $post );
+			}
+
 			// Inherit additional fields for siblings, parent, children, next, prev post.
 			$inherit_fields = array_intersect(
 				$additional_fields,
@@ -204,6 +208,68 @@ class Post {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Get Yoast SEO meta data for a post.
+	 *
+	 * Reads Yoast's Surfaces API, the same source its own REST field serialises:
+	 * Yoast\WP\SEO\Routes\Yoast_Head_REST_Field resolves `yoast_head_json` as
+	 * Meta_Surface::for_post()->get_head()->json. Reading the surface directly
+	 * returns an identical payload without dispatching an internal /wp/v2 request,
+	 * so it also works for previews: a cookie-authenticated preview request carries
+	 * no REST nonce, core therefore zeroes the current user, and a /wp/v2 subrequest
+	 * would 401 on a draft even though this endpoint authorized it.
+	 *
+	 * Unlike Yoast's REST field this ignores Yoast's `enable_headless_rest_endpoints`
+	 * option, which gates that field. fuxt exists to serve a headless frontend, so
+	 * SEO data must not depend on that toggle being switched on.
+	 *
+	 * Also unlike Yoast's REST field, post types set to "don't show in search results"
+	 * are not excluded: Yoast's own frontend still outputs a full head for those (with
+	 * robots noindex) and a headless frontend needs the same. Only revisions, autosaves
+	 * and auto-drafts return null.
+	 *
+	 * The payload is returned verbatim so the API stays client-agnostic. Clients that
+	 * transform response keys (eg: camelCase) must leave the JSON-LD `schema` subtree
+	 * untouched, as its `@context`/`@graph`/`@id` keys are part of the schema.org contract.
+	 *
+	 * @param \WP_Post $post Post object.
+	 *
+	 * @return array|null Yoast head data, or null when Yoast SEO is not active or the post has none.
+	 */
+	private static function get_seodata( $post ) {
+		if ( ! function_exists( 'YoastSEO' ) ) {
+			return null;
+		}
+
+		if ( wp_is_post_revision( $post ) || wp_is_post_autosave( $post ) || 'auto-draft' === $post->post_status ) {
+			return null;
+		}
+
+		$yoast = YoastSEO();
+
+		if ( ! isset( $yoast->meta ) ) {
+			return null;
+		}
+
+		$meta = $yoast->meta->for_post( $post->ID );
+
+		// for_post() returns false when the post has no indexable.
+		if ( ! $meta || ! method_exists( $meta, 'get_head' ) ) {
+			return null;
+		}
+
+		$head = $meta->get_head();
+
+		if ( empty( $head->json ) ) {
+			return null;
+		}
+
+		// Normalize any nested objects to plain arrays for a predictable JSON response.
+		$json = json_decode( wp_json_encode( $head->json ), true );
+
+		return is_array( $json ) ? $json : null;
 	}
 
 	/**

@@ -79,10 +79,30 @@ class REST_Settings_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 				),
+				'fuxt_api_version'     => array(
+					'description' => __( 'Installed fuxt-api plugin version. Lets frontends feature-detect optional fields before requesting them.', 'fuxt-api' ),
+					'type'        => 'string',
+				),
 			),
 		);
 
 		return $schema;
+	}
+
+	/**
+	 * Get the installed plugin version from the main plugin file header.
+	 *
+	 * @return string
+	 */
+	private static function get_plugin_version() {
+		static $version = null;
+
+		if ( null === $version ) {
+			$data    = get_file_data( dirname( __DIR__ ) . '/fuxt-api.php', array( 'version' => 'Version' ) );
+			$version = $data['version'] ?? '';
+		}
+
+		return $version;
 	}
 
 	/**
@@ -117,6 +137,7 @@ class REST_Settings_Controller {
 			'backend_url'          => get_option( 'siteurl' ),
 			'frontend_url'         => home_url(),
 			'theme_screenshot_url' => wp_get_theme()->get_screenshot(),
+			'fuxt_api_version'     => self::get_plugin_version(),
 		);
 
 		$settings = apply_filters( 'fuxt_api_settings_response', $settings );
