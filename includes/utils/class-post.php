@@ -151,15 +151,13 @@ class Post {
 
 					$depth -= 1;
 
+					$child_params = array( 'depth' => $depth );
+					if ( isset( $params['per_page'] ) ) {
+						$child_params['per_page'] = $params['per_page'];
+					}
+
 					foreach ( $children as $child ) {
-						$children_data[] = self::get_postdata(
-							$child,
-							$child_additional_fields,
-							array(
-								'per_page' => $params['per_page'],
-								'depth'    => $depth,
-							)
-						);
+						$children_data[] = self::get_postdata( $child, $child_additional_fields, $child_params );
 					}
 				}
 

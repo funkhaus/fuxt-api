@@ -186,9 +186,10 @@ class Utils {
 		}
 
 		if ( ! $term_taxonomy instanceof \WP_Term ) {
-			$term_taxonomy = get_term_by( 'term_taxonomy_id', $term_taxonomy );
+			// Ints are term IDs: a term's `parent`, or an ACF taxonomy field with the "Term ID" return format.
+			$term_taxonomy = get_term( (int) $term_taxonomy );
 
-			if ( empty( $term_taxonomy ) ) {
+			if ( empty( $term_taxonomy ) || is_wp_error( $term_taxonomy ) ) {
 				return null;
 			}
 		}
