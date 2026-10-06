@@ -247,10 +247,11 @@ class REST_Resources_Controller {
 		}
 
 		foreach ( $this->acf_keys as $key ) {
-			$value = get_field( $key, $post_id, false );
+			// Relationship fields need raw IDs; other fields (e.g. file) should use ACF return format.
+			$format_value = ! in_array( $key, $this->relationship_fields, true );
+			$value        = get_field( $key, $post_id, $format_value );
 
-			// For relationship fields, just get titles
-			if ( in_array( $key, $this->relationship_fields, true ) && is_array( $value ) ) {
+			if ( ! $format_value && is_array( $value ) ) {
 				$out[ $key ] = $this->get_relationship_titles( $value );
 			} else {
 				$out[ $key ] = $value;

@@ -12,6 +12,7 @@
 
 require_once __DIR__ . '/includes/class-plugin-base.php';
 require_once __DIR__ . '/includes/class-plugin.php';
+require_once __DIR__ . '/includes/class-rest-countries-controller.php';
 
 /**
  * Fuxt API Plugin Instance
