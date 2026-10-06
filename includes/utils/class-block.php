@@ -115,7 +115,26 @@ class Block {
 					// Get fields objects
 					$fields = \get_field_objects( $prepared_block['id'] );
 
-					$extended_block['acf'] = ( new Acf() )->get_data_by_fields( $fields );
+					// Resolve this block's ACF fields.
+					//
+					// The two constructor arguments are what let a relationship (or
+					// post_object / page_link) field return each related post WITH its
+					// own `acf` data attached. Constructed bare -- `new Acf()` -- the
+					// related posts come back as base post objects only (id, title,
+					// excerpt, to, featured_media, date) and every nested ACF value is
+					// silently missing, so a block that picks e.g. Events cannot read
+					// those events' own fields (venue, start date, hero image, logo).
+					//
+					// This mirrors what the page-level resolver already does for
+					// `fields=acf` requests in Post::get_postdata(), which passes its
+					// inherited fields and a decremented depth down the same way -- and
+					// is why the identical relationship field resolves fully on a page
+					// but came back one level short inside a block.
+					//
+					// acf_depth 1 = resolve one level of nested ACF (the related post's
+					// own fields) and stop, so this cannot recurse indefinitely through
+					// posts that relate back to each other.
+					$extended_block['acf'] = ( new Acf( array( 'acf' ), array( 'acf_depth' => 1 ) ) )->get_data_by_fields( $fields );
 				}
 			}
 
