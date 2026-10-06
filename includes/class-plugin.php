@@ -28,6 +28,11 @@ class Plugin extends Plugin_Base {
 		( new REST_Project_Images_Controller() )->init();
 		( new Yoast_Seo() )->init();
 
+		// Guarded so a deploy that drops the file can't fatal the site.
+		if ( class_exists( __NAMESPACE__ . '\REST_Email_Controller' ) ) {
+			( new REST_Email_Controller() )->init();
+		}
+
 		$this->update_check();
 	}
 
