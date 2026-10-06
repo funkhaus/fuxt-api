@@ -25,6 +25,12 @@ class Plugin extends Plugin_Base {
 		( new REST_Posts_Controller() )->init();
 		( new REST_User_Controller() )->init();
 
+		// Disabled until a site adds recipients via fuxt_api_email_allowed_recipients.
+		// Guarded so a deploy that drops the file can't fatal the site.
+		if ( class_exists( __NAMESPACE__ . '\REST_Email_Controller' ) ) {
+			( new REST_Email_Controller() )->init();
+		}
+
 		$this->update_check();
 	}
 
