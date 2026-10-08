@@ -165,6 +165,10 @@ class REST_Posts_Controller {
 				'description' => __( 'Nested `prev` depth when `prev` field is requested.', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
+			'siblings_include_self' => array(
+				'description' => __( 'Include each post itself in its `siblings` list when `siblings` field is requested.', 'fuxt-api' ),
+				'type'        => 'boolean',
+			),
 		);
 	}
 
