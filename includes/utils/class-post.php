@@ -100,15 +100,17 @@ class Post {
 				$data['siblings'] = array();
 				$sibling_posts    = self::get_sibling_posts( $post );
 
-				// filter current post.
-				$sibling_posts = array_values(
-					array_filter(
-						$sibling_posts,
-						function ( $sibling ) use ( $post ) {
-							return $sibling->ID !== $post->ID;
-						}
-					)
-				);
+				// filter current post, unless the full list of siblings including itself was requested.
+				if ( empty( $params['siblings_include_self'] ) ) {
+					$sibling_posts = array_values(
+						array_filter(
+							$sibling_posts,
+							function ( $sibling ) use ( $post ) {
+								return $sibling->ID !== $post->ID;
+							}
+						)
+					);
+				}
 
 				foreach ( $sibling_posts as $sibling_post ) {
 					$data['siblings'][] = self::get_postdata( $sibling_post, $inherit_fields );
@@ -679,6 +681,10 @@ class Post {
 
 		if ( in_array( 'prev', $additional_fields, true ) && isset( $params['prev_depth'] ) ) {
 			$post_params['prev_depth'] = (int) $params['prev_depth'];
+		}
+
+		if ( in_array( 'siblings', $additional_fields, true ) && isset( $params['siblings_include_self'] ) ) {
+			$post_params['siblings_include_self'] = (bool) $params['siblings_include_self'];
 		}
 
 		foreach ( $posts as $post ) {

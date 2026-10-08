@@ -117,6 +117,10 @@ class REST_Post_Controller {
 				'description' => __( 'When `prev` is requested, how many sibling posts to follow backward (nested `prev.prev…`). Default is 1 (single prev).', 'fuxt-api' ),
 				'type'        => 'integer',
 			),
+			'siblings_include_self' => array(
+				'description' => __( 'When `siblings` is requested, include the current post in the siblings list (in its sibling order). Default is false.', 'fuxt-api' ),
+				'type'        => 'boolean',
+			),
 		);
 	}
 
@@ -398,6 +402,10 @@ class REST_Post_Controller {
 
 		if ( in_array( 'prev', $additional_fields ) && isset( $request['prev_depth'] ) ) {
 			$params['prev_depth'] = (int) $request['prev_depth'];
+		}
+
+		if ( in_array( 'siblings', $additional_fields ) && isset( $request['siblings_include_self'] ) ) {
+			$params['siblings_include_self'] = (bool) $request['siblings_include_self'];
 		}
 
 		$post     = PostUtils::get_postdata( $post, $additional_fields, $params );
